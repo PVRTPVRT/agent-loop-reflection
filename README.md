@@ -80,6 +80,7 @@ from agentloop.v2 import (
 
 ## 文档
 
+- [架构图与实验结果展示](docs/portfolio-showcase.md)
 - [完整开发日志](docs/knowledge-base/development-log.md)
 - [V2 知识库索引](docs/knowledge-base/INDEX.md)
 - [重复实验结果](docs/knowledge-base/experiments/2026-07-27-v2-repeated-results.md)
