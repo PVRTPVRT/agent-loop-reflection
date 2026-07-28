@@ -1,5 +1,7 @@
 ﻿# Agent Loop Reflection V2
 
+[![CI](https://github.com/PVRTPVRT/agent-loop-reflection/actions/workflows/ci.yml/badge.svg)](https://github.com/PVRTPVRT/agent-loop-reflection/actions/workflows/ci.yml)
+
 一个可评测、可观测、成本感知的 Coding Agent 系统，支持 Direct、Lean
 Reflection 和 Adaptive 三种执行策略。
 
