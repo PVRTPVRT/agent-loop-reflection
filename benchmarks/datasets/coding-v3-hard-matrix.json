@@ -1,0 +1,662 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-hard-matrix",
+  "description": "Frozen v0.3 hard-task matrix spanning cache timing, stream framing, and idempotent event processing.",
+  "tasks": [
+    {
+      "task_id": "ttl-lru-001",
+      "category": "state-machine",
+      "difficulty": "hard",
+      "prompt": "实现 Python 函数 simulate_ttl_lru(capacity, events)，返回所有 get 事件的结果列表。capacity 为非负整数，负数时抛出 ValueError。events 按非递减整数 time 排列。put 事件格式为 {op:'put', key:str, value:any, ttl:正整数, time:int}；get 事件格式为 {op:'get', key:str, time:int}。每个事件执行前，先删除 time >= expires_at 的条目。put 会写入或覆盖条目，expires_at=time+ttl，并将其设为最近使用；随后按 LRU 淘汰直到不超过 capacity。get 未命中返回 None，命中返回 value 并更新为最近使用。capacity=0 时不保存条目。不得使用真实时间或全局状态。",
+      "evaluation_suite": {
+        "function_name": "simulate_ttl_lru",
+        "test_cases": [
+          {
+            "args": [
+              3,
+              [
+                {
+                  "op": "put",
+                  "key": "a",
+                  "value": "A",
+                  "ttl": 100,
+                  "time": 0
+                },
+                {
+                  "op": "put",
+                  "key": "x",
+                  "value": "X",
+                  "ttl": 2,
+                  "time": 0
+                },
+                {
+                  "op": "get",
+                  "key": "x",
+                  "time": 1
+                },
+                {
+                  "op": "put",
+                  "key": "b",
+                  "value": "B",
+                  "ttl": 100,
+                  "time": 1
+                },
+                {
+                  "op": "put",
+                  "key": "c",
+                  "value": "C",
+                  "ttl": 100,
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "x",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "b",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "c",
+                  "time": 2
+                }
+              ]
+            ],
+            "expected": [
+              "X",
+              "A",
+              null,
+              "B",
+              "C"
+            ],
+            "expected_exception": null,
+            "description": "expired MRU entry must be removed even when an unexpired key is LRU"
+          },
+          {
+            "args": [
+              2,
+              [
+                {
+                  "op": "put",
+                  "key": "a",
+                  "value": "A",
+                  "ttl": 10,
+                  "time": 0
+                },
+                {
+                  "op": "put",
+                  "key": "b",
+                  "value": "B",
+                  "ttl": 10,
+                  "time": 0
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 1
+                },
+                {
+                  "op": "put",
+                  "key": "c",
+                  "value": "C",
+                  "ttl": 10,
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "b",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 3
+                },
+                {
+                  "op": "get",
+                  "key": "c",
+                  "time": 3
+                }
+              ]
+            ],
+            "expected": [
+              "A",
+              null,
+              "A",
+              "C"
+            ],
+            "expected_exception": null,
+            "description": "get updates recency before capacity eviction"
+          },
+          {
+            "args": [
+              2,
+              [
+                {
+                  "op": "put",
+                  "key": "a",
+                  "value": 1,
+                  "ttl": 2,
+                  "time": 0
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 1
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 2
+                },
+                {
+                  "op": "put",
+                  "key": "b",
+                  "value": 2,
+                  "ttl": 1,
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "b",
+                  "time": 3
+                }
+              ]
+            ],
+            "expected": [
+              1,
+              null,
+              null
+            ],
+            "expected_exception": null,
+            "description": "entries expire exactly at expires_at"
+          },
+          {
+            "args": [
+              2,
+              [
+                {
+                  "op": "put",
+                  "key": "a",
+                  "value": "old",
+                  "ttl": 2,
+                  "time": 0
+                },
+                {
+                  "op": "put",
+                  "key": "b",
+                  "value": "B",
+                  "ttl": 10,
+                  "time": 0
+                },
+                {
+                  "op": "put",
+                  "key": "a",
+                  "value": "new",
+                  "ttl": 10,
+                  "time": 1
+                },
+                {
+                  "op": "put",
+                  "key": "c",
+                  "value": "C",
+                  "ttl": 10,
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "b",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "c",
+                  "time": 2
+                }
+              ]
+            ],
+            "expected": [
+              "new",
+              null,
+              "C"
+            ],
+            "expected_exception": null,
+            "description": "overwrite resets expiry and recency"
+          },
+          {
+            "args": [
+              0,
+              [
+                {
+                  "op": "put",
+                  "key": "a",
+                  "value": 1,
+                  "ttl": 10,
+                  "time": 0
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 0
+                }
+              ]
+            ],
+            "expected": [
+              null
+            ],
+            "expected_exception": null,
+            "description": "zero capacity never stores entries"
+          },
+          {
+            "args": [
+              -1,
+              []
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "negative capacity contract"
+          }
+        ]
+      }
+    },
+    {
+      "task_id": "frame-decoder-001",
+      "category": "stream-state-machine",
+      "difficulty": "hard",
+      "prompt": "实现 Python 函数 decode_frames_by_chunk(chunks, max_frame_size)。chunks 是十六进制字符串列表，按顺序表示到达的字节块；每个字符串必须只包含偶数个十六进制字符，空字符串表示空 chunk。协议中每帧由 4 字节无符号大端 payload 长度和对应 payload 组成。函数必须逐 chunk 解码，返回与 chunks 等长的二维列表：第 i 个列表包含处理第 i 个 chunk 时刚完成的所有 payload，payload 输出为小写十六进制字符串。header、payload 和多帧均可跨任意 chunk 边界；零长度帧必须在其 header 完成的 chunk 中输出空字符串。max_frame_size 为非负整数；负数、非法 hex、声明长度超过 max_frame_size、或输入结束时残留不完整 header/payload 均抛出 ValueError。不得使用全局状态、真实时间或修改输入。",
+      "evaluation_suite": {
+        "function_name": "decode_frames_by_chunk",
+        "test_cases": [
+          {
+            "args": [
+              [
+                "00",
+                "00",
+                "00",
+                "03",
+                "61",
+                "62",
+                "63",
+                "00",
+                "00",
+                "00",
+                "00",
+                "00",
+                "00",
+                "00",
+                "02",
+                "ff",
+                "00"
+              ],
+              3
+            ],
+            "expected": [
+              [],
+              [],
+              [],
+              [],
+              [],
+              [],
+              [
+                "616263"
+              ],
+              [],
+              [],
+              [],
+              [
+                ""
+              ],
+              [],
+              [],
+              [],
+              [],
+              [],
+              [
+                "ff00"
+              ]
+            ],
+            "expected_exception": null,
+            "description": "one-byte chunks across payload, zero frame, and binary payload"
+          },
+          {
+            "args": [
+              [
+                "",
+                "00000001",
+                "",
+                "41",
+                ""
+              ],
+              1
+            ],
+            "expected": [
+              [],
+              [],
+              [],
+              [
+                "41"
+              ],
+              []
+            ],
+            "expected_exception": null,
+            "description": "empty chunks preserve output alignment"
+          },
+          {
+            "args": [
+              [
+                "00000002AB",
+                "CD"
+              ],
+              2
+            ],
+            "expected": [
+              [],
+              [
+                "abcd"
+              ]
+            ],
+            "expected_exception": null,
+            "description": "uppercase input is normalized to lowercase output"
+          },
+          {
+            "args": [
+              [
+                "00000001GG"
+              ],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "non-hex characters are rejected"
+          },
+          {
+            "args": [
+              [
+                "0"
+              ],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "odd-length hex chunks are rejected"
+          },
+          {
+            "args": [
+              [
+                "0000"
+              ],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "trailing partial header is rejected"
+          },
+          {
+            "args": [
+              [
+                "000000036162"
+              ],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "trailing partial payload is rejected"
+          },
+          {
+            "args": [
+              [
+                "00000003"
+              ],
+              2
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "declared payload larger than max is rejected"
+          },
+          {
+            "args": [
+              [],
+              -1
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "negative max frame size follows the public contract"
+          }
+        ]
+      }
+    },
+    {
+      "task_id": "idempotent-ledger-001",
+      "category": "business-state-machine",
+      "difficulty": "hard",
+      "prompt": "实现 Python 函数 process_idempotent_transfers(initial_balances, events)。initial_balances 是账户名到非负整数余额的字典。每个 event 必须且只能包含 id、from、to、amount：前三者为非空字符串，from 与 to 不同，amount 为正整数。首次出现的 id：若来源余额不足，状态为 rejected 且不改变余额；否则执行转账，必要时创建目标账户，状态为 applied。每个结果为 {id, status, from_balance, to_balance}，余额字段是该事件首次处理后的两个账户余额。重复 id 且载荷完全相同必须返回首次缓存的结果，绝不能再次执行，即使余额后来发生变化；重复 id 但 from/to/amount 任一不同必须抛出 ValueError。返回 {results: 按输入事件顺序的结果列表, balances: 最终余额字典}。缺失来源账户按余额 0 处理。非法初始余额、非法事件、冲突幂等键均抛出 ValueError。不得修改输入或使用全局状态。",
+      "evaluation_suite": {
+        "function_name": "process_idempotent_transfers",
+        "test_cases": [
+          {
+            "args": [
+              {
+                "a": 10,
+                "b": 0,
+                "c": 0
+              },
+              [
+                {
+                  "id": "e1",
+                  "from": "a",
+                  "to": "b",
+                  "amount": 7
+                },
+                {
+                  "id": "e2",
+                  "from": "b",
+                  "to": "c",
+                  "amount": 5
+                },
+                {
+                  "id": "e1",
+                  "from": "a",
+                  "to": "b",
+                  "amount": 7
+                }
+              ]
+            ],
+            "expected": {
+              "results": [
+                {
+                  "id": "e1",
+                  "status": "applied",
+                  "from_balance": 3,
+                  "to_balance": 7
+                },
+                {
+                  "id": "e2",
+                  "status": "applied",
+                  "from_balance": 2,
+                  "to_balance": 5
+                },
+                {
+                  "id": "e1",
+                  "status": "applied",
+                  "from_balance": 3,
+                  "to_balance": 7
+                }
+              ],
+              "balances": {
+                "a": 3,
+                "b": 2,
+                "c": 5
+              }
+            },
+            "expected_exception": null,
+            "description": "duplicate applied event returns cached result without reapplying"
+          },
+          {
+            "args": [
+              {
+                "a": 1
+              },
+              [
+                {
+                  "id": "missing",
+                  "from": "x",
+                  "to": "z",
+                  "amount": 1
+                }
+              ]
+            ],
+            "expected": {
+              "results": [
+                {
+                  "id": "missing",
+                  "status": "rejected",
+                  "from_balance": 0,
+                  "to_balance": 0
+                }
+              ],
+              "balances": {
+                "a": 1
+              }
+            },
+            "expected_exception": null,
+            "description": "missing source has zero balance and rejection creates no accounts"
+          },
+          {
+            "args": [
+              {
+                "a": 2
+              },
+              [
+                {
+                  "id": "new-destination",
+                  "from": "a",
+                  "to": "z",
+                  "amount": 2
+                }
+              ]
+            ],
+            "expected": {
+              "results": [
+                {
+                  "id": "new-destination",
+                  "status": "applied",
+                  "from_balance": 0,
+                  "to_balance": 2
+                }
+              ],
+              "balances": {
+                "a": 0,
+                "z": 2
+              }
+            },
+            "expected_exception": null,
+            "description": "successful transfer creates a missing destination"
+          },
+          {
+            "args": [
+              {
+                "a": 3
+              },
+              []
+            ],
+            "expected": {
+              "results": [],
+              "balances": {
+                "a": 3
+              }
+            },
+            "expected_exception": null,
+            "description": "empty event list returns an independent balance copy"
+          },
+          {
+            "args": [
+              {
+                "a": 10,
+                "b": 0,
+                "c": 0
+              },
+              [
+                {
+                  "id": "same",
+                  "from": "a",
+                  "to": "b",
+                  "amount": 2
+                },
+                {
+                  "id": "same",
+                  "from": "a",
+                  "to": "c",
+                  "amount": 2
+                }
+              ]
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "same id with a conflicting destination is rejected"
+          },
+          {
+            "args": [
+              {
+                "a": -1
+              },
+              []
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "negative initial balances are rejected"
+          },
+          {
+            "args": [
+              {
+                "a": 2,
+                "b": 0
+              },
+              [
+                {
+                  "id": "zero",
+                  "from": "a",
+                  "to": "b",
+                  "amount": 0
+                }
+              ]
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "zero transfer amount is rejected"
+          },
+          {
+            "args": [
+              {
+                "a": 2
+              },
+              [
+                {
+                  "id": "self",
+                  "from": "a",
+                  "to": "a",
+                  "amount": 1
+                }
+              ]
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "self transfer is rejected"
+          }
+        ]
+      }
+    }
+  ]
+}

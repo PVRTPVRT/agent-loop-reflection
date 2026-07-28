@@ -1,0 +1,313 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-hard-matrix-routing",
+  "description": "Public routing suites for the frozen v0.3 hard-task matrix.",
+  "tasks": [
+    {
+      "task_id": "ttl-lru-001",
+      "category": "state-machine",
+      "difficulty": "hard",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "simulate_ttl_lru",
+        "test_cases": [
+          {
+            "args": [
+              2,
+              [
+                {
+                  "op": "put",
+                  "key": "a",
+                  "value": "A",
+                  "ttl": 2,
+                  "time": 0
+                },
+                {
+                  "op": "put",
+                  "key": "b",
+                  "value": "B",
+                  "ttl": 10,
+                  "time": 0
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 1
+                },
+                {
+                  "op": "put",
+                  "key": "c",
+                  "value": "C",
+                  "ttl": 10,
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "a",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "b",
+                  "time": 2
+                },
+                {
+                  "op": "get",
+                  "key": "c",
+                  "time": 2
+                }
+              ]
+            ],
+            "expected": [
+              "A",
+              null,
+              "B",
+              "C"
+            ],
+            "expected_exception": null,
+            "description": "expiry occurs before LRU eviction at the same timestamp"
+          },
+          {
+            "args": [
+              1,
+              [
+                {
+                  "op": "put",
+                  "key": "x",
+                  "value": "old",
+                  "ttl": 1,
+                  "time": 0
+                },
+                {
+                  "op": "put",
+                  "key": "x",
+                  "value": "new",
+                  "ttl": 5,
+                  "time": 1
+                },
+                {
+                  "op": "get",
+                  "key": "x",
+                  "time": 5
+                },
+                {
+                  "op": "get",
+                  "key": "x",
+                  "time": 6
+                }
+              ]
+            ],
+            "expected": [
+              "new",
+              null
+            ],
+            "expected_exception": null,
+            "description": "overwrite resets value, recency, and expiry"
+          }
+        ]
+      }
+    },
+    {
+      "task_id": "frame-decoder-001",
+      "category": "stream-state-machine",
+      "difficulty": "hard",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "decode_frames_by_chunk",
+        "test_cases": [
+          {
+            "args": [
+              [
+                "00",
+                "0000",
+                "0268",
+                "69"
+              ],
+              8
+            ],
+            "expected": [
+              [],
+              [],
+              [],
+              [
+                "6869"
+              ]
+            ],
+            "expected_exception": null,
+            "description": "header and payload both cross chunk boundaries"
+          },
+          {
+            "args": [
+              [
+                "0000000000000001410000000242",
+                "43"
+              ],
+              8
+            ],
+            "expected": [
+              [
+                "",
+                "41"
+              ],
+              [
+                "4243"
+              ]
+            ],
+            "expected_exception": null,
+            "description": "sticky frames and zero-length frame preserve chunk attribution"
+          },
+          {
+            "args": [
+              [
+                "00000005"
+              ],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "oversized frame is rejected as soon as the header completes"
+          }
+        ]
+      }
+    },
+    {
+      "task_id": "idempotent-ledger-001",
+      "category": "business-state-machine",
+      "difficulty": "hard",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "process_idempotent_transfers",
+        "test_cases": [
+          {
+            "args": [
+              {
+                "a": 10,
+                "b": 0
+              },
+              [
+                {
+                  "id": "x",
+                  "from": "a",
+                  "to": "b",
+                  "amount": 4
+                },
+                {
+                  "id": "x",
+                  "from": "a",
+                  "to": "b",
+                  "amount": 4
+                }
+              ]
+            ],
+            "expected": {
+              "results": [
+                {
+                  "id": "x",
+                  "status": "applied",
+                  "from_balance": 6,
+                  "to_balance": 4
+                },
+                {
+                  "id": "x",
+                  "status": "applied",
+                  "from_balance": 6,
+                  "to_balance": 4
+                }
+              ],
+              "balances": {
+                "a": 6,
+                "b": 4
+              }
+            },
+            "expected_exception": null,
+            "description": "identical duplicate is replayed from cache"
+          },
+          {
+            "args": [
+              {
+                "a": 0,
+                "b": 10,
+                "c": 0
+              },
+              [
+                {
+                  "id": "x",
+                  "from": "a",
+                  "to": "c",
+                  "amount": 5
+                },
+                {
+                  "id": "fund",
+                  "from": "b",
+                  "to": "a",
+                  "amount": 10
+                },
+                {
+                  "id": "x",
+                  "from": "a",
+                  "to": "c",
+                  "amount": 5
+                }
+              ]
+            ],
+            "expected": {
+              "results": [
+                {
+                  "id": "x",
+                  "status": "rejected",
+                  "from_balance": 0,
+                  "to_balance": 0
+                },
+                {
+                  "id": "fund",
+                  "status": "applied",
+                  "from_balance": 0,
+                  "to_balance": 10
+                },
+                {
+                  "id": "x",
+                  "status": "rejected",
+                  "from_balance": 0,
+                  "to_balance": 0
+                }
+              ],
+              "balances": {
+                "a": 10,
+                "b": 0,
+                "c": 0
+              }
+            },
+            "expected_exception": null,
+            "description": "cached rejection remains rejected after later funding"
+          },
+          {
+            "args": [
+              {
+                "a": 10,
+                "b": 0,
+                "c": 0
+              },
+              [
+                {
+                  "id": "conflict",
+                  "from": "a",
+                  "to": "b",
+                  "amount": 4
+                },
+                {
+                  "id": "conflict",
+                  "from": "a",
+                  "to": "c",
+                  "amount": 4
+                }
+              ]
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "same id with different payload is a contract violation"
+          }
+        ]
+      }
+    }
+  ]
+}
