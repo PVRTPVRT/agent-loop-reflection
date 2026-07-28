@@ -22,8 +22,7 @@ class DockerSandboxV2(DockerSandbox):
         runner_content = self._build_v2_runner_script(code, test_suite)
 
         with tempfile.TemporaryDirectory(prefix="agentloop_sandbox_v2_") as temp_dir:
-            runner_path = Path(temp_dir) / "runner.py"
-            runner_path.write_text(runner_content, encoding="utf-8")
+            self._write_runner_script(Path(temp_dir), runner_content)
             command = self._build_docker_command(Path(temp_dir).resolve())
             try:
                 completed = subprocess.run(
@@ -57,6 +56,15 @@ class DockerSandboxV2(DockerSandbox):
             stderr=stderr,
             exit_code=completed.returncode,
         )
+
+    @staticmethod
+    def _write_runner_script(temp_dir: Path, runner_content: str) -> Path:
+        """Write a runner that the sandbox's unprivileged user can read."""
+        runner_path = temp_dir / "runner.py"
+        runner_path.write_text(runner_content, encoding="utf-8")
+        temp_dir.chmod(0o755)
+        runner_path.chmod(0o644)
+        return runner_path
 
     @staticmethod
     def _build_v2_runner_script(
