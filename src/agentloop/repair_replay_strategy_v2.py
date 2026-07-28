@@ -11,6 +11,7 @@ from agentloop.benchmark_models import StrategyTaskResult
 from agentloop.evaluation_v2_models import EvaluationTask
 from agentloop.repair_v2 import RepairContext
 from agentloop.routing_suites import RoutingSuiteRegistry
+from agentloop.telemetry import traced_task_method
 
 
 class RepairReplayStrategyV2:
@@ -37,6 +38,7 @@ class RepairReplayStrategyV2:
         self.candidate_source = candidate_source
         self.trace_dir = trace_dir
 
+    @traced_task_method("agentloop.repair_replay.task")
     def run(self, task: EvaluationTask) -> StrategyTaskResult:
         self.provider.reset()
         started = time.perf_counter()

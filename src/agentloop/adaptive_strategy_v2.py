@@ -13,6 +13,7 @@ from agentloop.models import LLMRequest
 from agentloop.parsing import extract_python_code
 from agentloop.repair_v2 import RepairContext
 from agentloop.routing_suites import RoutingSuiteRegistry
+from agentloop.telemetry import traced_task_method
 
 
 class AdaptiveStrategyV2:
@@ -33,6 +34,7 @@ class AdaptiveStrategyV2:
         self.routing_suites = routing_suites
         self.trace_dir = trace_dir
 
+    @traced_task_method("agentloop.adaptive.task")
     def run(self, task: EvaluationTask) -> StrategyTaskResult:
         self.provider.reset()
         started = time.perf_counter()

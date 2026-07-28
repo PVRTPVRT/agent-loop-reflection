@@ -73,6 +73,11 @@ class RepairEvaluationCriticAgent(EvaluationCriticAgent):
                     "agent": "critic",
                     "phase": "repair",
                     "task_id": task.task_id,
+                    "repair_round": str(
+                        context.attempts[-1].round_number + 1
+                        if context.attempts
+                        else 1
+                    ),
                 },
             )
         )
@@ -109,6 +114,11 @@ class RepairEvaluationCoderAgent(EvaluationCoderAgent):
                     "agent": "coder",
                     "phase": "repair",
                     "task_id": task.task_id,
+                    "repair_round": str(
+                        context.attempts[-1].round_number + 1
+                        if context.attempts
+                        else 1
+                    ),
                 },
             )
         )

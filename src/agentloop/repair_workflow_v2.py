@@ -7,11 +7,13 @@ from agentloop.evaluation_workflow import EvaluationWorkflowResult
 from agentloop.lean_evaluation import LeanNormalizedEvaluationWorkflow
 from agentloop.models import AgentEvent
 from agentloop.repair_v2 import RepairAttempt, RepairContext
+from agentloop.telemetry import traced_task_method
 
 
 class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
     """Diagnose and repair the failed Direct candidate instead of restarting."""
 
+    @traced_task_method("agentloop.repair.workflow")
     def run(
         self,
         task: EvaluationTask,
