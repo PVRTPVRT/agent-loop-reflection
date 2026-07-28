@@ -1,0 +1,70 @@
+{
+  "dataset_id": "coding-v3-hard-matrix",
+  "dataset_fingerprint": "d386595324cd2945",
+  "created_at": "2026-07-28T14:44:34.949027+00:00",
+  "results": [
+    {
+      "task_id": "ttl-lru-001",
+      "strategy": "adaptive",
+      "success": false,
+      "internal_success": false,
+      "duration_ms": 30416.28700000001,
+      "coding_rounds": 3,
+      "debate_rounds": 2,
+      "message": "Case 1 (expired MRU entry must be removed even when an unexpired key is LRU): expected ['X', 'A', None, 'B', 'C'], got ['X', None, None, 'B', 'C']",
+      "code": "from collections import OrderedDict\nfrom typing import Any, Dict, List, Optional\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Optional[Any]]:\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    # key -> (value, expires_at)\n    cache: \"OrderedDict[str, tuple[Any, int]]\" = OrderedDict()\n    results: List[Optional[Any]] = []\n\n    def purge(current_time: int) -> None:\n        # spec: before each event, delete entries with time >= expires_at\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if current_time >= expires_at:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n\n        purge(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            expires_at = t + ttl\n\n            # write/overwrite and mark MRU\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)\n\n            # LRU eviction only; do not do additional purge within this event.\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n            else:\n                value, _ = cache[key]\n                cache.move_to_end(key, last=True)\n                results.append(value)\n        else:\n            raise ValueError(f\"Unknown op: {op}\")\n\n    return results",
+      "usage": {
+        "model_calls": 5,
+        "input_tokens": 7030,
+        "output_tokens": 2377,
+        "total_tokens": 9407
+      }
+    },
+    {
+      "task_id": "frame-decoder-001",
+      "strategy": "adaptive",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 5140.636100004485,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 9 V2 cases for decode_frames_by_chunk",
+      "code": "from typing import List\n\n\ndef decode_frames_by_chunk(chunks: List[str], max_frame_size: int) -> List[List[str]]:\n    if not isinstance(max_frame_size, int) or max_frame_size < 0:\n        raise ValueError(\"max_frame_size must be a non-negative integer\")\n\n    if chunks is None:\n        raise ValueError(\"chunks must not be None\")\n\n    # Buffer for bytes not yet processed (across chunk boundaries)\n    buf = bytearray()\n\n    out: List[List[str]] = [[] for _ in range(len(chunks))]\n\n    def append_decoded_payload(payload_bytes: bytes, idx: int):\n        out[idx].append(payload_bytes.hex())\n\n    # Process each chunk sequentially\n    for i, chunk_hex in enumerate(chunks):\n        # Decode current chunk hex string into bytes (or empty)\n        if not isinstance(chunk_hex, str):\n            raise ValueError(\"each chunk must be a hex string\")\n\n        if len(chunk_hex) % 2 != 0:\n            raise ValueError(\"hex string must contain an even number of characters\")\n\n        try:\n            if chunk_hex == \"\":\n                chunk_bytes = b\"\"\n            else:\n                chunk_bytes = bytes.fromhex(chunk_hex)\n        except ValueError as e:\n            raise ValueError(\"illegal hex\") from e\n\n        buf.extend(chunk_bytes)\n\n        # Consume as many complete frames as possible from buf\n        while True:\n            if len(buf) < 4:\n                break\n\n            payload_len = int.from_bytes(buf[0:4], byteorder=\"big\", signed=False)\n            if payload_len > max_frame_size:\n                raise ValueError(\"declared payload length exceeds max_frame_size\")\n\n            if len(buf) < 4 + payload_len:\n                break\n\n            # Extract payload\n            start = 4\n            end = 4 + payload_len\n            payload = bytes(buf[start:end])\n\n            # Remove consumed frame\n            del buf[:end]\n\n            # Zero-length payload must output empty string when header completes\n            append_decoded_payload(payload, i)\n\n    # After all chunks, ensure no incomplete header/payload remains\n    if len(buf) != 0:\n        raise ValueError(\"incomplete header/payload at end of input\")\n\n    return out",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 255,
+        "output_tokens": 473,
+        "total_tokens": 728
+      }
+    },
+    {
+      "task_id": "idempotent-ledger-001",
+      "strategy": "adaptive",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 23624.780799997097,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 8 V2 cases for process_idempotent_transfers",
+      "code": "def process_idempotent_transfers(initial_balances, events):\n    # Validate initial_balances\n    if not isinstance(initial_balances, dict):\n        raise ValueError(\"initial_balances must be a dict\")\n\n    balances = {}\n    for k, v in initial_balances.items():\n        if not isinstance(k, str) or not k:\n            raise ValueError(\"account names must be non-empty strings\")\n        if not isinstance(v, int) or v < 0:\n            raise ValueError(\"initial balances must be non-negative integers\")\n        balances[k] = v\n\n    if not isinstance(events, list):\n        raise ValueError(\"events must be a list\")\n\n    id_cache = {}  # id -> {\"payload\": payload_dict, \"result\": result_dict}\n    results = []\n\n    def _validate_event(ev):\n        if not isinstance(ev, dict):\n            raise ValueError(\"each event must be a dict\")\n\n        required_keys = {\"id\", \"from\", \"to\", \"amount\"}\n        if set(ev.keys()) != required_keys:\n            raise ValueError(\"each event must contain exactly keys: id, from, to, amount\")\n\n        event_id = ev[\"id\"]\n        from_acct = ev[\"from\"]\n        to_acct = ev[\"to\"]\n        amount = ev[\"amount\"]\n\n        if not isinstance(event_id, str) or not event_id:\n            raise ValueError(\"id must be a non-empty string\")\n        if not isinstance(from_acct, str) or not from_acct:\n            raise ValueError(\"from must be a non-empty string\")\n        if not isinstance(to_acct, str) or not to_acct:\n            raise ValueError(\"to must be a non-empty string\")\n        if from_acct == to_acct:\n            raise ValueError(\"from and to must be different\")\n        if not isinstance(amount, int) or amount <= 0:\n            raise ValueError(\"amount must be a positive integer\")\n\n        return {\"id\": event_id, \"from\": from_acct, \"to\": to_acct, \"amount\": amount}\n\n    for ev in events:\n        payload = _validate_event(ev)\n        event_id = payload[\"id\"]\n\n        if event_id in id_cache:\n            cached = id_cache[event_id][\"payload\"]\n            if (\n                cached[\"from\"] != payload[\"from\"]\n                or cached[\"to\"] != payload[\"to\"]\n                or cached[\"amount\"] != payload[\"amount\"]\n            ):\n                raise ValueError(\"conflicting id payload\")\n            # Return cached result without re-executing\n            results.append(dict(id_cache[event_id][\"result\"]))\n            continue\n\n        from_acct = payload[\"from\"]\n        to_acct = payload[\"to\"]\n        amount = payload[\"amount\"]\n\n        from_balance = balances.get(from_acct, 0)\n        to_balance = balances.get(to_acct, 0)\n\n        if from_balance < amount:\n            result = {\n                \"id\": event_id,\n                \"status\": \"rejected\",\n                \"from_balance\": from_balance,\n                \"to_balance\": to_balance,\n            }\n            id_cache[event_id] = {\"payload\": payload, \"result\": result}\n            results.append(dict(result))\n        else:\n            # Apply transfer\n            from_balance_after = from_balance - amount\n            to_balance_after = to_balance + amount\n            balances[from_acct] = from_balance_after\n            balances[to_acct] = to_balance_after\n\n            result = {\n                \"id\": event_id,\n                \"status\": \"applied\",\n                \"from_balance\": from_balance_after,\n                \"to_balance\": to_balance_after,\n            }\n            id_cache[event_id] = {\"payload\": payload, \"result\": result}\n            results.append(dict(result))\n\n    return {\"results\": results, \"balances\": balances}",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 281,
+        "output_tokens": 789,
+        "total_tokens": 1070
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "adaptive",
+      "total_tasks": 3,
+      "passed_tasks": 2,
+      "pass_rate": 0.6666666666666666,
+      "average_duration_ms": 19727.234633333865,
+      "average_model_calls": 2.3333333333333335,
+      "average_total_tokens": 3735.0,
+      "average_coding_rounds": 1.6666666666666667
+    }
+  ]
+}
