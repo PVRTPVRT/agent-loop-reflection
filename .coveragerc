@@ -1,0 +1,7 @@
+[run]
+data_file = .pytest_cache/.coverage
+source = src/agentloop
+
+[report]
+show_missing = true
+

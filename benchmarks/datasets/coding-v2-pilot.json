@@ -1,0 +1,67 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v2-pilot",
+  "description": "V2 paired pilot with value and expected-exception evaluation.",
+  "tasks": [
+    {
+      "task_id": "add-001",
+      "category": "arithmetic",
+      "difficulty": "easy",
+      "prompt": "实现 Python 函数 add(a, b)，返回两个数字之和。",
+      "evaluation_suite": {
+        "function_name": "add",
+        "test_cases": [
+          {"args": [2, 3], "expected": 5, "expected_exception": null, "description": "positive integers"},
+          {"args": [-4, 7], "expected": 3, "expected_exception": null, "description": "mixed signs"},
+          {"args": [0, 0], "expected": 0, "expected_exception": null, "description": "zeros"},
+          {"args": [1.5, 2.25], "expected": 3.75, "expected_exception": null, "description": "floats"}
+        ]
+      }
+    },
+    {
+      "task_id": "factorial-001",
+      "category": "arithmetic",
+      "difficulty": "easy",
+      "prompt": "实现 Python 函数 factorial(n)。n 为非负整数时返回 n!；n 为负数时抛出 ValueError。",
+      "evaluation_suite": {
+        "function_name": "factorial",
+        "test_cases": [
+          {"args": [0], "expected": 1, "expected_exception": null, "description": "zero"},
+          {"args": [5], "expected": 120, "expected_exception": null, "description": "normal"},
+          {"args": [8], "expected": 40320, "expected_exception": null, "description": "larger input"},
+          {"args": [-1], "expected": null, "expected_exception": "ValueError", "description": "required negative error"}
+        ]
+      }
+    },
+    {
+      "task_id": "palindrome-001",
+      "category": "string",
+      "difficulty": "medium",
+      "prompt": "实现 Python 函数 is_palindrome(text)。忽略大小写和所有非字母数字字符，判断文本是否为回文。",
+      "evaluation_suite": {
+        "function_name": "is_palindrome",
+        "test_cases": [
+          {"args": ["A man, a plan, a canal: Panama!"], "expected": true, "expected_exception": null, "description": "punctuation and case"},
+          {"args": ["race a car"], "expected": false, "expected_exception": null, "description": "not palindrome"},
+          {"args": [""], "expected": true, "expected_exception": null, "description": "empty"},
+          {"args": ["No 'x' in Nixon"], "expected": true, "expected_exception": null, "description": "spaces and apostrophe"}
+        ]
+      }
+    },
+    {
+      "task_id": "deduplicate-001",
+      "category": "collection",
+      "difficulty": "medium",
+      "prompt": "实现 Python 函数 deduplicate(items)，删除列表中的重复元素并保持首次出现顺序。元素均可哈希。",
+      "evaluation_suite": {
+        "function_name": "deduplicate",
+        "test_cases": [
+          {"args": [[1, 2, 1, 3, 2]], "expected": [1, 2, 3], "expected_exception": null, "description": "integers"},
+          {"args": [[]], "expected": [], "expected_exception": null, "description": "empty"},
+          {"args": [["a", "a", "b"]], "expected": ["a", "b"], "expected_exception": null, "description": "strings"},
+          {"args": [[0, false, 1, true, 2]], "expected": [0, 1, 2], "expected_exception": null, "description": "Python equality semantics"}
+        ]
+      }
+    }
+  ]
+}

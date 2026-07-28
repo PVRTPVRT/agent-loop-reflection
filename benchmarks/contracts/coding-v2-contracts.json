@@ -1,0 +1,79 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v2",
+  "contracts": {
+    "add-001": {
+      "function_name": "add",
+      "oracle": "add",
+      "parameters": [
+        {"name": "a", "types": ["integer", "float"], "finite": true},
+        {"name": "b", "types": ["integer", "float"], "finite": true}
+      ],
+      "exceptions": []
+    },
+    "factorial-001": {
+      "function_name": "factorial",
+      "oracle": "factorial",
+      "parameters": [
+        {"name": "n", "types": ["integer"], "finite": null}
+      ],
+      "exceptions": [
+        {"parameter": "n", "operator": "<", "value": 0, "exception": "ValueError"}
+      ]
+    },
+    "fibonacci-001": {
+      "function_name": "fibonacci",
+      "oracle": "fibonacci",
+      "parameters": [
+        {"name": "n", "types": ["integer"], "finite": null}
+      ],
+      "exceptions": [
+        {"parameter": "n", "operator": "<", "value": 0, "exception": "ValueError"}
+      ]
+    },
+    "palindrome-001": {
+      "function_name": "is_palindrome",
+      "oracle": "is_palindrome",
+      "parameters": [
+        {"name": "text", "types": ["string"], "finite": null}
+      ],
+      "exceptions": []
+    },
+    "clamp-001": {
+      "function_name": "clamp",
+      "oracle": "clamp",
+      "parameters": [
+        {"name": "value", "types": ["integer", "float"], "finite": true},
+        {"name": "lower", "types": ["integer", "float"], "finite": true},
+        {"name": "upper", "types": ["integer", "float"], "finite": true}
+      ],
+      "exceptions": [
+        {"parameter": "lower", "operator": ">", "other_parameter": "upper", "value": null, "exception": "ValueError"}
+      ]
+    },
+    "count-vowels-001": {
+      "function_name": "count_vowels",
+      "oracle": "count_vowels",
+      "parameters": [
+        {"name": "text", "types": ["string"], "finite": null}
+      ],
+      "exceptions": []
+    },
+    "deduplicate-001": {
+      "function_name": "deduplicate",
+      "oracle": "deduplicate",
+      "parameters": [
+        {"name": "items", "types": ["list"], "finite": null, "items_hashable": true}
+      ],
+      "exceptions": []
+    },
+    "flatten-once-001": {
+      "function_name": "flatten_once",
+      "oracle": "flatten_once",
+      "parameters": [
+        {"name": "items", "types": ["list"], "finite": null, "items_hashable": false}
+      ],
+      "exceptions": []
+    }
+  }
+}

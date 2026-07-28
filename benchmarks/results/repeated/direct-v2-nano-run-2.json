@@ -1,0 +1,155 @@
+{
+  "dataset_id": "coding-v2-full",
+  "dataset_fingerprint": "d7b5dbf39799f570",
+  "created_at": "2026-07-27T13:49:51.430139+00:00",
+  "results": [
+    {
+      "task_id": "add-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 3303.6831999997958,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for add",
+      "code": "def add(a, b):\n    return a + b",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 60,
+        "output_tokens": 20,
+        "total_tokens": 80
+      }
+    },
+    {
+      "task_id": "factorial-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2137.007600002107,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for factorial",
+      "code": "def factorial(n: int) -> int:\n    if not isinstance(n, int):\n        raise TypeError(\"n must be an integer\")\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 73,
+        "output_tokens": 84,
+        "total_tokens": 157
+      }
+    },
+    {
+      "task_id": "fibonacci-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2021.18899999914,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 5 V2 cases for fibonacci",
+      "code": "def fibonacci(n):\n    if n < 0:\n        raise ValueError(\"n must be non-negative\")\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 87,
+        "output_tokens": 63,
+        "total_tokens": 150
+      }
+    },
+    {
+      "task_id": "palindrome-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2332.8698000004806,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for is_palindrome",
+      "code": "import re\n\ndef is_palindrome(text):\n    s = re.sub(r'[^a-z0-9]', '', str(text).lower())\n    return s == s[::-1]",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 73,
+        "output_tokens": 45,
+        "total_tokens": 118
+      }
+    },
+    {
+      "task_id": "clamp-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2017.250499997317,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 5 V2 cases for clamp",
+      "code": "def clamp(value, lower, upper):\n    if lower > upper:\n        raise ValueError(\"lower must be <= upper\")\n    if value < lower:\n        return lower\n    if value > upper:\n        return upper\n    return value",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 82,
+        "output_tokens": 57,
+        "total_tokens": 139
+      }
+    },
+    {
+      "task_id": "count-vowels-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 1871.1903000003076,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for count_vowels",
+      "code": "def count_vowels(text):\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    return sum(1 for ch in text.lower() if ch in vowels)",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 77,
+        "output_tokens": 48,
+        "total_tokens": 125
+      }
+    },
+    {
+      "task_id": "deduplicate-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2645.448799998121,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for deduplicate",
+      "code": "def deduplicate(items):\n    \"\"\"\n    删除列表中的重复元素并保持首次出现顺序。\n    元素均可哈希。\n    \"\"\"\n    seen = set()\n    result = []\n    for x in items:\n        if x not in seen:\n            seen.add(x)\n            result.append(x)\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 71,
+        "output_tokens": 74,
+        "total_tokens": 145
+      }
+    },
+    {
+      "task_id": "flatten-once-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2069.766000000527,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for flatten_once",
+      "code": "from collections.abc import Iterable\n\ndef flatten_once(items):\n    result = []\n    for x in items:\n        if isinstance(x, list):\n            result.extend(x)\n        else:\n            result.append(x)\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 79,
+        "output_tokens": 54,
+        "total_tokens": 133
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "direct",
+      "total_tasks": 8,
+      "passed_tasks": 8,
+      "pass_rate": 1.0,
+      "average_duration_ms": 2299.8006499997246,
+      "average_model_calls": 1.0,
+      "average_total_tokens": 130.875,
+      "average_coding_rounds": 1.0
+    }
+  ]
+}

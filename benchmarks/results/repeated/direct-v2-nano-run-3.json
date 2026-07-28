@@ -1,0 +1,155 @@
+{
+  "dataset_id": "coding-v2-full",
+  "dataset_fingerprint": "d7b5dbf39799f570",
+  "created_at": "2026-07-27T13:50:33.110795+00:00",
+  "results": [
+    {
+      "task_id": "add-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 3147.737600000255,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for add",
+      "code": "def add(a, b):\n    return a + b",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 60,
+        "output_tokens": 20,
+        "total_tokens": 80
+      }
+    },
+    {
+      "task_id": "factorial-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2233.9859000021534,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for factorial",
+      "code": "def factorial(n):\n    if not isinstance(n, int):\n        raise TypeError(\"n must be an integer\")\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 73,
+        "output_tokens": 79,
+        "total_tokens": 152
+      }
+    },
+    {
+      "task_id": "fibonacci-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2229.6425999993517,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 5 V2 cases for fibonacci",
+      "code": "def fibonacci(n: int) -> int:\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    if n == 0:\n        return 0\n    if n == 1:\n        return 1\n\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 87,
+        "output_tokens": 100,
+        "total_tokens": 187
+      }
+    },
+    {
+      "task_id": "palindrome-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2649.2906999992556,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for is_palindrome",
+      "code": "import re\n\ndef is_palindrome(text: str) -> bool:\n    if text is None:\n        return True\n    cleaned = re.sub(r'[^0-9a-zA-Z]+', '', text).lower()\n    return cleaned == cleaned[::-1]",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 73,
+        "output_tokens": 62,
+        "total_tokens": 135
+      }
+    },
+    {
+      "task_id": "clamp-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2419.2125999979908,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 5 V2 cases for clamp",
+      "code": "def clamp(value, lower, upper):\n    \"\"\"\n    将 value 限制在闭区间 [lower, upper]。\n    若 lower > upper，抛出 ValueError。\n    \"\"\"\n    if lower > upper:\n        raise ValueError(\"lower must be less than or equal to upper\")\n    if value < lower:\n        return lower\n    if value > upper:\n        return upper\n    return value",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 82,
+        "output_tokens": 93,
+        "total_tokens": 175
+      }
+    },
+    {
+      "task_id": "count-vowels-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2460.7580000010785,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for count_vowels",
+      "code": "def count_vowels(text):\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    count = 0\n    for ch in text.lower():\n        if ch in vowels:\n            count += 1\n    return count",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 77,
+        "output_tokens": 61,
+        "total_tokens": 138
+      }
+    },
+    {
+      "task_id": "deduplicate-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 1929.393300000811,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for deduplicate",
+      "code": "from typing import Iterable, List, TypeVar, Set\n\nT = TypeVar(\"T\")\n\ndef deduplicate(items: Iterable[T]) -> List[T]:\n    seen: Set[T] = set()\n    result: List[T] = []\n    for x in items:\n        if x not in seen:\n            seen.add(x)\n            result.append(x)\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 71,
+        "output_tokens": 83,
+        "total_tokens": 154
+      }
+    },
+    {
+      "task_id": "flatten-once-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2181.3794000008784,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for flatten_once",
+      "code": "from collections.abc import Iterable\n\ndef flatten_once(items):\n    \"\"\"\n    将列表中直接包含的子列表展开一层；非列表元素保持不变，不递归展开更深层。\n\n    例如：\n    flatten_once([1, [2, 3], [4, [5]]]) -> [1, 2, 3, 4, [5]]\n    \"\"\"\n    result = []\n    for x in items:\n        if isinstance(x, list):\n            result.extend(x)\n        else:\n            result.append(x)\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 79,
+        "output_tokens": 124,
+        "total_tokens": 203
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "direct",
+      "total_tasks": 8,
+      "passed_tasks": 8,
+      "pass_rate": 1.0,
+      "average_duration_ms": 2406.425012500222,
+      "average_model_calls": 1.0,
+      "average_total_tokens": 153.0,
+      "average_coding_rounds": 1.0
+    }
+  ]
+}

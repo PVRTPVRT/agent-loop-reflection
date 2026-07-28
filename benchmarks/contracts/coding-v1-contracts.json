@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "coding-v1",
+  "contracts": {
+    "add-001": {
+      "function_name": "add",
+      "parameters": [
+        {"name": "a", "domain": "integer or finite float"},
+        {"name": "b", "domain": "integer or finite float"}
+      ],
+      "returns": "the arithmetic sum a + b, preserving normal Python numeric semantics",
+      "errors": []
+    },
+    "factorial-001": {
+      "function_name": "factorial",
+      "parameters": [
+        {"name": "n", "domain": "integer"}
+      ],
+      "returns": "n factorial for non-negative n",
+      "errors": ["raise ValueError when n is negative"]
+    },
+    "fibonacci-001": {
+      "function_name": "fibonacci",
+      "parameters": [
+        {"name": "n", "domain": "non-negative integer"}
+      ],
+      "returns": "the nth Fibonacci number using F(0)=0 and F(1)=1",
+      "errors": []
+    },
+    "palindrome-001": {
+      "function_name": "is_palindrome",
+      "parameters": [
+        {"name": "text", "domain": "string"}
+      ],
+      "returns": "whether the text is a palindrome after ignoring case and non-alphanumeric characters",
+      "errors": []
+    },
+    "clamp-001": {
+      "function_name": "clamp",
+      "parameters": [
+        {"name": "value", "domain": "integer or finite float"},
+        {"name": "lower", "domain": "integer or finite float"},
+        {"name": "upper", "domain": "integer or finite float"}
+      ],
+      "returns": "value restricted to the inclusive interval [lower, upper]",
+      "errors": ["raise ValueError when lower is greater than upper"]
+    },
+    "count-vowels-001": {
+      "function_name": "count_vowels",
+      "parameters": [
+        {"name": "text", "domain": "string"}
+      ],
+      "returns": "the case-insensitive count of English vowels a, e, i, o, and u",
+      "errors": []
+    },
+    "deduplicate-001": {
+      "function_name": "deduplicate",
+      "parameters": [
+        {"name": "items", "domain": "list of hashable values"}
+      ],
+      "returns": "a list with duplicates removed while preserving first-occurrence order",
+      "errors": []
+    },
+    "flatten-once-001": {
+      "function_name": "flatten_once",
+      "parameters": [
+        {"name": "items", "domain": "list whose elements may include lists"}
+      ],
+      "returns": "a list with directly nested lists expanded by exactly one level",
+      "errors": []
+    }
+  }
+}

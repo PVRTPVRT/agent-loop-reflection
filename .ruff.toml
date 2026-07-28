@@ -1,0 +1,6 @@
+target-version = "py312"
+line-length = 100
+
+[lint.per-file-ignores]
+"tests/**/*.py" = ["SIM117"]
+

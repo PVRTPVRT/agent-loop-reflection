@@ -1,0 +1,155 @@
+{
+  "dataset_id": "coding-v2-full",
+  "dataset_fingerprint": "d7b5dbf39799f570",
+  "created_at": "2026-07-27T13:49:17.276556+00:00",
+  "results": [
+    {
+      "task_id": "add-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 3544.8453000026348,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for add",
+      "code": "def add(a, b):\n    return a + b",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 60,
+        "output_tokens": 20,
+        "total_tokens": 80
+      }
+    },
+    {
+      "task_id": "factorial-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 3065.378300001612,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for factorial",
+      "code": "def factorial(n: int) -> int:\n    if not isinstance(n, int):\n        raise TypeError(\"n must be an integer\")\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 73,
+        "output_tokens": 84,
+        "total_tokens": 157
+      }
+    },
+    {
+      "task_id": "fibonacci-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 1986.2457999988692,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 5 V2 cases for fibonacci",
+      "code": "def fibonacci(n: int) -> int:\n    if n < 0:\n        raise ValueError(\"n must be non-negative\")\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 87,
+        "output_tokens": 68,
+        "total_tokens": 155
+      }
+    },
+    {
+      "task_id": "palindrome-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2167.728199998237,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for is_palindrome",
+      "code": "import re\n\ndef is_palindrome(text):\n    if text is None:\n        return True\n    cleaned = re.sub(r'[^0-9a-zA-Z]+', '', str(text).lower())\n    return cleaned == cleaned[::-1]",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 73,
+        "output_tokens": 54,
+        "total_tokens": 127
+      }
+    },
+    {
+      "task_id": "clamp-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2111.8772000008903,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 5 V2 cases for clamp",
+      "code": "def clamp(value, lower, upper):\n    if lower > upper:\n        raise ValueError(\"lower must not be greater than upper\")\n    if value < lower:\n        return lower\n    if value > upper:\n        return upper\n    return value",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 82,
+        "output_tokens": 59,
+        "total_tokens": 141
+      }
+    },
+    {
+      "task_id": "count-vowels-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 2728.0711000021256,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for count_vowels",
+      "code": "def count_vowels(text: str) -> int:\n    vowels = set(\"aeiou\")\n    return sum(1 for ch in text.lower() if ch in vowels)",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 77,
+        "output_tokens": 43,
+        "total_tokens": 120
+      }
+    },
+    {
+      "task_id": "deduplicate-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 1996.6332999974838,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for deduplicate",
+      "code": "from typing import Iterable, List, TypeVar\n\nT = TypeVar(\"T\")\n\ndef deduplicate(items: Iterable[T]) -> List[T]:\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 71,
+        "output_tokens": 73,
+        "total_tokens": 144
+      }
+    },
+    {
+      "task_id": "flatten-once-001",
+      "strategy": "direct",
+      "success": true,
+      "internal_success": null,
+      "duration_ms": 1811.9833999990078,
+      "coding_rounds": 1,
+      "debate_rounds": 0,
+      "message": "Passed 4 V2 cases for flatten_once",
+      "code": "from collections.abc import Iterable\n\n\ndef flatten_once(items):\n    result = []\n    for x in items:\n        if isinstance(x, list):\n            result.extend(x)\n        else:\n            result.append(x)\n    return result",
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 79,
+        "output_tokens": 54,
+        "total_tokens": 133
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "direct",
+      "total_tasks": 8,
+      "passed_tasks": 8,
+      "pass_rate": 1.0,
+      "average_duration_ms": 2426.5953250001076,
+      "average_model_calls": 1.0,
+      "average_total_tokens": 132.125,
+      "average_coding_rounds": 1.0
+    }
+  ]
+}

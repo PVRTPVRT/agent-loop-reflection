@@ -1,0 +1,155 @@
+{
+  "dataset_id": "coding-v2-full",
+  "dataset_fingerprint": "d7b5dbf39799f570",
+  "created_at": "2026-07-27T14:08:22.689659+00:00",
+  "results": [
+    {
+      "task_id": "add-001",
+      "strategy": "reflection",
+      "success": false,
+      "internal_success": false,
+      "duration_ms": 61952.23929999702,
+      "coding_rounds": 0,
+      "debate_rounds": 0,
+      "message": "APITimeoutError: Request timed out.",
+      "code": null,
+      "usage": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      }
+    },
+    {
+      "task_id": "factorial-001",
+      "strategy": "reflection",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 41672.75910000171,
+      "coding_rounds": 1,
+      "debate_rounds": 1,
+      "message": "Passed 4 V2 cases for factorial",
+      "code": "def factorial(n):\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result",
+      "usage": {
+        "model_calls": 3,
+        "input_tokens": 1708,
+        "output_tokens": 780,
+        "total_tokens": 2488
+      }
+    },
+    {
+      "task_id": "fibonacci-001",
+      "strategy": "reflection",
+      "success": false,
+      "internal_success": false,
+      "duration_ms": 96062.34459999905,
+      "coding_rounds": 0,
+      "debate_rounds": 0,
+      "message": "APITimeoutError: Request timed out.",
+      "code": null,
+      "usage": {
+        "model_calls": 1,
+        "input_tokens": 548,
+        "output_tokens": 325,
+        "total_tokens": 873
+      }
+    },
+    {
+      "task_id": "palindrome-001",
+      "strategy": "reflection",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 47420.09739999776,
+      "coding_rounds": 1,
+      "debate_rounds": 1,
+      "message": "Passed 4 V2 cases for is_palindrome",
+      "code": "import re\n\ndef is_palindrome(text: str) -> bool:\n    filtered = re.sub(r'[^A-Za-z0-9]+', '', text).lower()\n    return filtered == filtered[::-1]",
+      "usage": {
+        "model_calls": 3,
+        "input_tokens": 2514,
+        "output_tokens": 1186,
+        "total_tokens": 3700
+      }
+    },
+    {
+      "task_id": "clamp-001",
+      "strategy": "reflection",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 15216.09940000053,
+      "coding_rounds": 1,
+      "debate_rounds": 1,
+      "message": "Passed 5 V2 cases for clamp",
+      "code": "def clamp(value, lower, upper):\n    if lower > upper:\n        raise ValueError(\"lower cannot be greater than upper\")\n    if value < lower:\n        return lower\n    if value > upper:\n        return upper\n    return value",
+      "usage": {
+        "model_calls": 3,
+        "input_tokens": 2445,
+        "output_tokens": 876,
+        "total_tokens": 3321
+      }
+    },
+    {
+      "task_id": "count-vowels-001",
+      "strategy": "reflection",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 64049.75299999933,
+      "coding_rounds": 1,
+      "debate_rounds": 1,
+      "message": "Passed 4 V2 cases for count_vowels",
+      "code": "def count_vowels(text: str) -> int:\n    if text is None:\n        return 0\n    vowels = set(\"aeiou\")\n    return sum(1 for ch in text.lower() if ch in vowels)",
+      "usage": {
+        "model_calls": 3,
+        "input_tokens": 2531,
+        "output_tokens": 1330,
+        "total_tokens": 3861
+      }
+    },
+    {
+      "task_id": "deduplicate-001",
+      "strategy": "reflection",
+      "success": false,
+      "internal_success": false,
+      "duration_ms": 60002.74940000236,
+      "coding_rounds": 0,
+      "debate_rounds": 0,
+      "message": "APITimeoutError: Request timed out.",
+      "code": null,
+      "usage": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      }
+    },
+    {
+      "task_id": "flatten-once-001",
+      "strategy": "reflection",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 12463.209099998494,
+      "coding_rounds": 1,
+      "debate_rounds": 1,
+      "message": "Passed 4 V2 cases for flatten_once",
+      "code": "from typing import List, Any\n\ndef flatten_once(items: List[Any]) -> List[Any]:\n    result = []\n    for x in items:\n        if isinstance(x, list):\n            result.extend(x)\n        else:\n            result.append(x)\n    return result",
+      "usage": {
+        "model_calls": 3,
+        "input_tokens": 1086,
+        "output_tokens": 698,
+        "total_tokens": 1784
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "reflection",
+      "total_tasks": 8,
+      "passed_tasks": 5,
+      "pass_rate": 0.625,
+      "average_duration_ms": 49854.906412499535,
+      "average_model_calls": 2.0,
+      "average_total_tokens": 2003.375,
+      "average_coding_rounds": 0.625
+    }
+  ]
+}

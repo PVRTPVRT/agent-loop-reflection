@@ -1,0 +1,106 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v2-routing",
+  "description": "Public development suites used only for adaptive routing, separate from hidden benchmark evaluation.",
+  "tasks": [
+    {
+      "task_id": "add-001",
+      "category": "arithmetic",
+      "difficulty": "easy",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "add",
+        "test_cases": [
+          {"args": [-2.5, 4], "expected": 1.5, "expected_exception": null, "description": "mixed numeric routing case"}
+        ]
+      }
+    },
+    {
+      "task_id": "factorial-001",
+      "category": "arithmetic",
+      "difficulty": "easy",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "factorial",
+        "test_cases": [
+          {"args": [3], "expected": 6, "expected_exception": null, "description": "small positive"},
+          {"args": [-2], "expected": null, "expected_exception": "ValueError", "description": "negative contract"}
+        ]
+      }
+    },
+    {
+      "task_id": "fibonacci-001",
+      "category": "sequence",
+      "difficulty": "easy",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "fibonacci",
+        "test_cases": [
+          {"args": [6], "expected": 8, "expected_exception": null, "description": "sequence case"},
+          {"args": [-2], "expected": null, "expected_exception": "ValueError", "description": "negative contract"}
+        ]
+      }
+    },
+    {
+      "task_id": "palindrome-001",
+      "category": "string",
+      "difficulty": "medium",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "is_palindrome",
+        "test_cases": [
+          {"args": ["Was it a rat I saw?"], "expected": true, "expected_exception": null, "description": "case and punctuation"}
+        ]
+      }
+    },
+    {
+      "task_id": "clamp-001",
+      "category": "boundary",
+      "difficulty": "easy",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "clamp",
+        "test_cases": [
+          {"args": [15, -5, 5], "expected": 5, "expected_exception": null, "description": "above range"},
+          {"args": [0, 2, 1], "expected": null, "expected_exception": "ValueError", "description": "invalid bounds"}
+        ]
+      }
+    },
+    {
+      "task_id": "count-vowels-001",
+      "category": "string",
+      "difficulty": "easy",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "count_vowels",
+        "test_cases": [
+          {"args": ["Education"], "expected": 5, "expected_exception": null, "description": "mixed case vowels"}
+        ]
+      }
+    },
+    {
+      "task_id": "deduplicate-001",
+      "category": "collection",
+      "difficulty": "medium",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "deduplicate",
+        "test_cases": [
+          {"args": [[true, 1, false, 0, "x", "x"]], "expected": [true, false, "x"], "expected_exception": null, "description": "Python equality and order"}
+        ]
+      }
+    },
+    {
+      "task_id": "flatten-once-001",
+      "category": "collection",
+      "difficulty": "medium",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "flatten_once",
+        "test_cases": [
+          {"args": [[1, [2, [3]], 4]], "expected": [1, 2, [3], 4], "expected_exception": null, "description": "exactly one level"}
+        ]
+      }
+    }
+  ]
+}
