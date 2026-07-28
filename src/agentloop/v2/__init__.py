@@ -12,6 +12,9 @@ from agentloop.evaluation_v2_models import (
     EvaluationTask,
 )
 from agentloop.managed_sandbox_v2 import ManagedDockerSandboxV2
+from agentloop.repair_replay_strategy_v2 import RepairReplayStrategyV2
+from agentloop.repair_v2 import RepairContext
+from agentloop.repair_workflow_v2 import EvidenceDrivenRepairWorkflow
 from agentloop.routing_suites import RoutingSuiteRegistry
 from agentloop.suite_normalization import (
     NormalizedSuite,
@@ -25,8 +28,11 @@ __all__ = [
     "EvaluationDataset",
     "EvaluationSuite",
     "EvaluationTask",
+    "EvidenceDrivenRepairWorkflow",
     "ManagedDockerSandboxV2",
     "NormalizedSuite",
+    "RepairContext",
+    "RepairReplayStrategyV2",
     "RoutingSuiteRegistry",
     "TaskContractV2",
     "normalize_suite",

@@ -11,6 +11,7 @@ from agentloop.benchmark_models import StrategyTaskResult
 from agentloop.evaluation_v2_models import EvaluationTask
 from agentloop.models import LLMRequest
 from agentloop.parsing import extract_python_code
+from agentloop.repair_v2 import RepairContext
 from agentloop.routing_suites import RoutingSuiteRegistry
 
 
@@ -54,6 +55,7 @@ class AdaptiveStrategyV2:
         routing_verification = self.verifier.verify(direct_code, routing_suite)
 
         workflow_result = None
+        repair_context = None
         if routing_verification.success:
             path = "direct"
             final_code = direct_code
@@ -62,7 +64,16 @@ class AdaptiveStrategyV2:
             debate_rounds = 0
         else:
             path = "reflection"
-            workflow_result = self.reflection_workflow.run(task)
+            repair_context = RepairContext(
+                task_id=task.task_id,
+                failed_code=direct_code,
+                routing_suite=routing_suite,
+                verification_message=routing_verification.message,
+            )
+            workflow_result = self.reflection_workflow.run(
+                task,
+                repair_context=repair_context,
+            )
             final_code = workflow_result.code
             internal_success = workflow_result.success
             coding_rounds = 1 + workflow_result.coding_rounds
@@ -71,10 +82,15 @@ class AdaptiveStrategyV2:
         hidden_verification = (
             self.verifier.verify(final_code, task.evaluation_suite) if final_code else None
         )
+        final_success = bool(
+            internal_success
+            and hidden_verification
+            and hidden_verification.success
+        )
         result = StrategyTaskResult(
             task_id=task.task_id,
             strategy=self.name,
-            success=bool(hidden_verification and hidden_verification.success),
+            success=final_success,
             internal_success=internal_success,
             duration_ms=(time.perf_counter() - started) * 1_000,
             coding_rounds=coding_rounds,
@@ -89,6 +105,7 @@ class AdaptiveStrategyV2:
             direct_code=direct_code,
             routing_suite=routing_suite,
             routing_verification=routing_verification,
+            repair_context=repair_context,
             workflow_result=workflow_result,
             hidden_verification=hidden_verification,
             result=result,
