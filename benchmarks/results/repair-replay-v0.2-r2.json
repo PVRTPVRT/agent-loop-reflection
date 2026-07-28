@@ -1,0 +1,36 @@
+{
+  "dataset_id": "coding-v2-repair-pilot-r2",
+  "dataset_fingerprint": "5d7f56d126110ecf",
+  "created_at": "2026-07-28T13:24:29.805673+00:00",
+  "results": [
+    {
+      "task_id": "ttl-lru-001",
+      "strategy": "repair-replay",
+      "success": true,
+      "internal_success": true,
+      "duration_ms": 14835.637399999541,
+      "coding_rounds": 1,
+      "debate_rounds": 1,
+      "message": "Passed 6 V2 cases for simulate_ttl_lru",
+      "code": "from collections import OrderedDict\nfrom typing import Any\n\n\ndef simulate_ttl_lru(capacity: int, events: list[dict[str, Any]]) -> list[Any]:\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    cache: OrderedDict[str, tuple[Any, int]] = OrderedDict()\n    results: list[Any] = []\n\n    def evict_expired(current_time: int) -> None:\n        # Must remove ALL entries with expires_at <= current_time,\n        # regardless of their position in LRU order.\n        expired_keys = [k for k, (_, expires_at) in cache.items() if expires_at <= current_time]\n        for k in expired_keys:\n            cache.pop(k, None)\n\n    for event in events:\n        current_time = event[\"time\"]\n        evict_expired(current_time)\n\n        op = event[\"op\"]\n        key = event[\"key\"]\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n\n            value = event[\"value\"]\n            ttl = event[\"ttl\"]\n            expires_at = current_time + ttl\n\n            cache.pop(key, None)\n            cache[key] = (value, expires_at)  # set as most recently used\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            if key not in cache:\n                results.append(None)\n                continue\n            value, _ = cache[key]\n            cache.move_to_end(key)\n            results.append(value)\n        else:\n            raise ValueError(f\"unknown op: {op}\")\n\n    return results",
+      "usage": {
+        "model_calls": 2,
+        "input_tokens": 2979,
+        "output_tokens": 834,
+        "total_tokens": 3813
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "repair-replay",
+      "total_tasks": 1,
+      "passed_tasks": 1,
+      "pass_rate": 1.0,
+      "average_duration_ms": 14835.637399999541,
+      "average_model_calls": 2.0,
+      "average_total_tokens": 3813.0,
+      "average_coding_rounds": 1.0
+    }
+  ]
+}
