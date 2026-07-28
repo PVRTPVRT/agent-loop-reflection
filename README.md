@@ -81,8 +81,9 @@ from agentloop.v2 import (
 ## 文档
 
 - [架构图与实验结果展示](docs/portfolio-showcase.md)
-- [完整开发日志](docs/knowledge-base/development-log.md)
-- [V2 知识库索引](docs/knowledge-base/INDEX.md)
+- [Adaptive 路由架构](docs/knowledge-base/architecture/adaptive-routing.md)
+- [安全执行决策](docs/knowledge-base/decisions/ADR-001-secure-execution.md)
+- [测试说明](docs/knowledge-base/TESTING.md)
+- [正式实验协议](docs/knowledge-base/experiments/coding-v2-full-protocol.md)
 - [重复实验结果](docs/knowledge-base/experiments/2026-07-27-v2-repeated-results.md)
 - [Adaptive 实验](docs/knowledge-base/experiments/2026-07-28-adaptive-v2-result.md)
-- [简历要点](docs/knowledge-base/resume-project-points.md)
