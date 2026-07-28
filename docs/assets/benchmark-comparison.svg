@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">Direct、Lean Reflection 与 Adaptive Benchmark 对比</title>
+  <desc id="desc">三个横向条形图分别比较通过率、平均耗时和平均 token。Direct 为 100%、2.38 秒、138.7 tokens；Reflection 为 75%、49.43 秒、2486.2 tokens；Adaptive 为 100%、3.32 秒、152.4 tokens。</desc>
+  <style>
+    :root { color-scheme: light dark; }
+    .bg { fill: #ffffff; }
+    .panel { fill: #f8fafc; stroke: #dbe3ec; }
+    .title { fill: #172033; font: 700 28px system-ui, sans-serif; }
+    .subtitle { fill: #58657a; font: 16px system-ui, sans-serif; }
+    .heading { fill: #172033; font: 700 20px system-ui, sans-serif; }
+    .label { fill: #253047; font: 600 16px system-ui, sans-serif; }
+    .value { fill: #172033; font: 700 16px system-ui, sans-serif; }
+    .note { fill: #58657a; font: 14px system-ui, sans-serif; }
+    .track { fill: #e8edf3; }
+    .direct { fill: #2563eb; }
+    .reflection { fill: #7c3aed; }
+    .adaptive { fill: #059669; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .panel { fill: #161b22; stroke: #30363d; }
+      .title, .heading, .value { fill: #f0f6fc; }
+      .subtitle, .note { fill: #9da7b3; }
+      .label { fill: #d7dde5; }
+      .track { fill: #30363d; }
+      .direct { fill: #58a6ff; }
+      .reflection { fill: #bc8cff; }
+      .adaptive { fill: #3fb950; }
+    }
+  </style>
+
+  <rect class="bg" width="1200" height="650"/>
+  <text class="title" x="50" y="52">Strategy Benchmark Comparison</text>
+  <text class="subtitle" x="50" y="82">coding-v2-full · 8 tasks · Direct/Reflection = 3-run mean · Adaptive = 1 run</text>
+
+  <g transform="translate(50 115)">
+    <rect class="panel" width="350" height="455" rx="14"/>
+    <text class="heading" x="24" y="42">Pass rate</text>
+    <text class="note" x="24" y="66">Higher is better · %</text>
+
+    <text class="label" x="24" y="112">Direct</text>
+    <rect class="track" x="24" y="128" width="302" height="28" rx="6"/>
+    <rect class="direct" x="24" y="128" width="302" height="28" rx="6"/>
+    <text class="value" x="326" y="112" text-anchor="end">100%</text>
+
+    <text class="label" x="24" y="207">Lean Reflection</text>
+    <rect class="track" x="24" y="223" width="302" height="28" rx="6"/>
+    <rect class="reflection" x="24" y="223" width="227" height="28" rx="6"/>
+    <text class="value" x="326" y="207" text-anchor="end">75%</text>
+    <text class="note" x="24" y="273">Observed range: 62.5%–100%</text>
+
+    <text class="label" x="24" y="327">Adaptive</text>
+    <rect class="track" x="24" y="343" width="302" height="28" rx="6"/>
+    <rect class="adaptive" x="24" y="343" width="302" height="28" rx="6"/>
+    <text class="value" x="326" y="327" text-anchor="end">100%</text>
+    <text class="note" x="24" y="393">Single run; feasibility evidence only</text>
+  </g>
+
+  <g transform="translate(425 115)">
+    <rect class="panel" width="350" height="455" rx="14"/>
+    <text class="heading" x="24" y="42">Average latency</text>
+    <text class="note" x="24" y="66">Lower is better · seconds/task</text>
+
+    <text class="label" x="24" y="112">Direct</text>
+    <rect class="track" x="24" y="128" width="302" height="28" rx="6"/>
+    <rect class="direct" x="24" y="128" width="15" height="28" rx="6"/>
+    <text class="value" x="326" y="112" text-anchor="end">2.38 s</text>
+
+    <text class="label" x="24" y="207">Lean Reflection</text>
+    <rect class="track" x="24" y="223" width="302" height="28" rx="6"/>
+    <rect class="reflection" x="24" y="223" width="299" height="28" rx="6"/>
+    <text class="value" x="326" y="207" text-anchor="end">49.43 s</text>
+
+    <text class="label" x="24" y="302">Adaptive</text>
+    <rect class="track" x="24" y="318" width="302" height="28" rx="6"/>
+    <rect class="adaptive" x="24" y="318" width="20" height="28" rx="6"/>
+    <text class="value" x="326" y="302" text-anchor="end">3.32 s</text>
+
+    <text class="note" x="24" y="393">Reflection latency was dominated by</text>
+    <text class="note" x="24" y="414">multi-call overhead and API timeouts.</text>
+  </g>
+
+  <g transform="translate(800 115)">
+    <rect class="panel" width="350" height="455" rx="14"/>
+    <text class="heading" x="24" y="42">Average token usage</text>
+    <text class="note" x="24" y="66">Lower is better · tokens/task</text>
+
+    <text class="label" x="24" y="112">Direct</text>
+    <rect class="track" x="24" y="128" width="302" height="28" rx="6"/>
+    <rect class="direct" x="24" y="128" width="17" height="28" rx="6"/>
+    <text class="value" x="326" y="112" text-anchor="end">138.7</text>
+
+    <text class="label" x="24" y="207">Lean Reflection</text>
+    <rect class="track" x="24" y="223" width="302" height="28" rx="6"/>
+    <rect class="reflection" x="24" y="223" width="300" height="28" rx="6"/>
+    <text class="value" x="326" y="207" text-anchor="end">2486.2</text>
+
+    <text class="label" x="24" y="302">Adaptive</text>
+    <rect class="track" x="24" y="318" width="302" height="28" rx="6"/>
+    <rect class="adaptive" x="24" y="318" width="18" height="28" rx="6"/>
+    <text class="value" x="326" y="302" text-anchor="end">152.4</text>
+
+    <text class="note" x="24" y="393">Reflection used ≈17.9× Direct tokens</text>
+    <text class="note" x="24" y="414">on this small deterministic task set.</text>
+  </g>
+
+  <g transform="translate(50 608)">
+    <circle class="direct" cx="7" cy="-5" r="7"/><text class="note" x="22" y="0">Direct</text>
+    <circle class="reflection" cx="107" cy="-5" r="7"/><text class="note" x="122" y="0">Lean Reflection</text>
+    <circle class="adaptive" cx="267" cy="-5" r="7"/><text class="note" x="282" y="0">Adaptive</text>
+    <text class="note" x="1150" y="0" text-anchor="end">Source: versioned JSON in benchmarks/results/</text>
+  </g>
+</svg>
