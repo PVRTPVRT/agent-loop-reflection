@@ -6,7 +6,7 @@ from agentloop.evaluation_v2_models import EvaluationTask
 from agentloop.evaluation_workflow import EvaluationWorkflowResult
 from agentloop.lean_evaluation import LeanNormalizedEvaluationWorkflow
 from agentloop.models import AgentEvent
-from agentloop.repair_v2 import RepairContext
+from agentloop.repair_v2 import RepairAttempt, RepairContext
 
 
 class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
@@ -36,6 +36,7 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
         ]
         feedback = repair_context.verification_message
         last_code = repair_context.failed_code
+        attempts = repair_context.attempts
         for coding_round in range(1, self.max_coding_rounds + 1):
             round_context = (
                 repair_context
@@ -44,6 +45,7 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
                     update={
                         "failed_code": last_code,
                         "verification_message": feedback,
+                        "attempts": attempts,
                     }
                 )
             )
@@ -53,7 +55,10 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
                     agent="critic",
                     event_type="repair_diagnosed",
                     message=diagnosis,
-                    metadata={"round": coding_round},
+                    metadata={
+                        "round": coding_round,
+                        "history_length": len(round_context.attempts),
+                    },
                 )
             )
             previous_code = last_code
@@ -99,6 +104,21 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
                     final_message=verification.message,
                     events=tuple(events),
                 )
+            if not attempts:
+                attempts = (
+                    RepairAttempt(
+                        round_number=0,
+                        diagnosis="Initial routed failure.",
+                        verification_message=repair_context.verification_message,
+                    ),
+                )
+            attempts += (
+                RepairAttempt(
+                    round_number=coding_round,
+                    diagnosis=diagnosis,
+                    verification_message=verification.message,
+                ),
+            )
             feedback = verification.message
 
         return EvaluationWorkflowResult(

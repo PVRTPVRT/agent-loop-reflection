@@ -7,6 +7,16 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from agentloop.evaluation_v2_models import EvaluationSuite
 
 
+class RepairAttempt(BaseModel):
+    """One failed repair observation retained to prevent hypothesis cycles."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    round_number: int = Field(ge=0)
+    diagnosis: str = Field(min_length=1)
+    verification_message: str = Field(min_length=1)
+
+
 class RepairContext(BaseModel):
     """Immutable evidence for repairing one failed Direct candidate."""
 
@@ -16,6 +26,7 @@ class RepairContext(BaseModel):
     failed_code: str = Field(min_length=1)
     routing_suite: EvaluationSuite
     verification_message: str = Field(min_length=1)
+    attempts: tuple[RepairAttempt, ...] = ()
 
     @model_validator(mode="after")
     def require_failed_evidence(self) -> RepairContext:
@@ -23,4 +34,7 @@ class RepairContext(BaseModel):
             raise ValueError("failed_code must contain executable candidate code")
         if not self.verification_message.strip():
             raise ValueError("verification_message must describe the route failure")
+        round_numbers = [attempt.round_number for attempt in self.attempts]
+        if round_numbers != sorted(set(round_numbers)):
+            raise ValueError("repair attempt rounds must be unique and increasing")
         return self

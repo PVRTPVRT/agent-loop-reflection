@@ -1,0 +1,36 @@
+{
+  "dataset_id": "coding-v2-repair-pilot-r2",
+  "dataset_fingerprint": "5d7f56d126110ecf",
+  "created_at": "2026-07-28T14:58:21.467888+00:00",
+  "results": [
+    {
+      "task_id": "ttl-lru-001",
+      "strategy": "repair-replay",
+      "success": false,
+      "internal_success": false,
+      "duration_ms": 24772.702399997797,
+      "coding_rounds": 2,
+      "debate_rounds": 2,
+      "message": "AssertionError: (['A', None, None, 'C'], ['A', None, 'B', 'C'])",
+      "code": "from collections import OrderedDict\nfrom typing import Any, Dict, List, Optional, Tuple\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Optional[Any]]:\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    cache: \"OrderedDict[str, Tuple[Any, int]]\" = OrderedDict()  # key -> (value, expires_at)\n    results: List[Optional[Any]] = []\n\n    def purge(current_time: int) -> None:\n        # Contract: before each event, delete entries with time >= expires_at\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if current_time >= expires_at:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n\n        purge(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            expires_at = t + ttl\n\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)  # insert as MRU\n\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n            else:\n                value, _expires_at = cache[key]\n                cache.move_to_end(key, last=True)\n                results.append(value)\n        else:\n            raise ValueError(f\"Unknown op: {op}\")\n\n    return results\n\n\nif __name__ == \"__main__\":\n    # Pre-context front-run simulation for the first failing case\n    # capacity=2\n    # put a ttl=2 @0 (expires_at=2)\n    # get a @2 should be None due to purge time >= expires_at\n    cap = 2\n    evs = [\n        {\"op\": \"put\", \"key\": \"a\", \"value\": \"A\", \"ttl\": 2, \"time\": 0},\n        {\"op\": \"put\", \"key\": \"b\", \"value\": \"B\", \"ttl\": 10, \"time\": 0},\n        {\"op\": \"get\", \"key\": \"a\", \"time\": 1},\n        {\"op\": \"put\", \"key\": \"c\", \"value\": \"C\", \"ttl\": 10, \"time\": 2},\n        {\"op\": \"get\", \"key\": \"a\", \"time\": 2},\n        {\"op\": \"get\", \"key\": \"b\", \"time\": 2},\n        {\"op\": \"get\", \"key\": \"c\", \"time\": 2},\n    ]\n    out = simulate_ttl_lru(cap, evs)\n    expected = [\"A\", None, \"B\", \"C\"]\n    assert out == expected, (out, expected)",
+      "usage": {
+        "model_calls": 4,
+        "input_tokens": 6860,
+        "output_tokens": 1900,
+        "total_tokens": 8760
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "repair-replay",
+      "total_tasks": 1,
+      "passed_tasks": 0,
+      "pass_rate": 0.0,
+      "average_duration_ms": 24772.702399997797,
+      "average_model_calls": 4.0,
+      "average_total_tokens": 8760.0,
+      "average_coding_rounds": 2.0
+    }
+  ]
+}
