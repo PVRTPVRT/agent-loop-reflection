@@ -58,3 +58,24 @@ def test_docker_accepts_frame_decoder_reference() -> None:
 
     assert result.success is True
     assert "Passed 9 V2 cases" in result.message
+
+
+def test_docker_accepts_idempotent_ledger_reference() -> None:
+    sandbox = DockerSandboxV2()
+    if not sandbox.is_available():
+        pytest.skip("Docker Engine is unavailable")
+
+    dataset = EvaluationDataset.load(
+        "benchmarks/datasets/coding-v3-idempotent-ledger-pilot.json"
+    )
+    code = Path("benchmarks/fixtures/idempotent-ledger-reference.py").read_text(
+        encoding="utf-8"
+    )
+
+    result = EvaluationCodeVerifier(sandbox=sandbox).verify(
+        code,
+        dataset.tasks[0].evaluation_suite,
+    )
+
+    assert result.success is True
+    assert "Passed 8 V2 cases" in result.message

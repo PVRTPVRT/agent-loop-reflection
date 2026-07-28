@@ -15,9 +15,17 @@ class ContractV2Model(BaseModel):
 
 class ParameterContractV2(ContractV2Model):
     name: str = Field(min_length=1)
-    types: list[Literal["integer", "float", "string", "boolean", "list", "null"]] = Field(
-        min_length=1
-    )
+    types: list[
+        Literal[
+            "integer",
+            "float",
+            "string",
+            "boolean",
+            "list",
+            "object",
+            "null",
+        ]
+    ] = Field(min_length=1)
     finite: bool | None = None
     items_hashable: bool | None = None
 

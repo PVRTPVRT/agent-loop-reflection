@@ -39,6 +39,8 @@ def _matches_type(value: Any, type_name: str) -> bool:
         return isinstance(value, bool)
     if type_name == "list":
         return isinstance(value, list)
+    if type_name == "object":
+        return isinstance(value, dict)
     return value is None
 
 
