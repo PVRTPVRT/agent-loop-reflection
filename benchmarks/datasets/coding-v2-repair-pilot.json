@@ -1,0 +1,85 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v2-repair-pilot",
+  "description": "A pre-registered hard state-machine task for validating Direct failure to evidence-driven repair.",
+  "tasks": [
+    {
+      "task_id": "ttl-lru-001",
+      "category": "state-machine",
+      "difficulty": "hard",
+      "prompt": "实现 Python 函数 simulate_ttl_lru(capacity, events)，返回所有 get 事件的结果列表。capacity 为非负整数，负数时抛出 ValueError。events 按非递减整数 time 排列。put 事件格式为 {op:'put', key:str, value:any, ttl:正整数, time:int}；get 事件格式为 {op:'get', key:str, time:int}。每个事件执行前，先删除 time >= expires_at 的条目。put 会写入或覆盖条目，expires_at=time+ttl，并将其设为最近使用；随后按 LRU 淘汰直到不超过 capacity。get 未命中返回 None，命中返回 value 并更新为最近使用。capacity=0 时不保存条目。不得使用真实时间或全局状态。",
+      "evaluation_suite": {
+        "function_name": "simulate_ttl_lru",
+        "test_cases": [
+          {
+            "args": [
+              2,
+              [
+                {"op": "put", "key": "a", "value": "A", "ttl": 10, "time": 0},
+                {"op": "put", "key": "b", "value": "B", "ttl": 10, "time": 0},
+                {"op": "get", "key": "a", "time": 1},
+                {"op": "put", "key": "c", "value": "C", "ttl": 10, "time": 2},
+                {"op": "get", "key": "b", "time": 2},
+                {"op": "get", "key": "a", "time": 3},
+                {"op": "get", "key": "c", "time": 3}
+              ]
+            ],
+            "expected": ["A", null, "A", "C"],
+            "expected_exception": null,
+            "description": "get updates recency before capacity eviction"
+          },
+          {
+            "args": [
+              2,
+              [
+                {"op": "put", "key": "a", "value": 1, "ttl": 2, "time": 0},
+                {"op": "get", "key": "a", "time": 1},
+                {"op": "get", "key": "a", "time": 2},
+                {"op": "put", "key": "b", "value": 2, "ttl": 1, "time": 2},
+                {"op": "get", "key": "b", "time": 3}
+              ]
+            ],
+            "expected": [1, null, null],
+            "expected_exception": null,
+            "description": "entries expire exactly at expires_at"
+          },
+          {
+            "args": [
+              2,
+              [
+                {"op": "put", "key": "a", "value": "old", "ttl": 2, "time": 0},
+                {"op": "put", "key": "b", "value": "B", "ttl": 10, "time": 0},
+                {"op": "put", "key": "a", "value": "new", "ttl": 10, "time": 1},
+                {"op": "put", "key": "c", "value": "C", "ttl": 10, "time": 2},
+                {"op": "get", "key": "a", "time": 2},
+                {"op": "get", "key": "b", "time": 2},
+                {"op": "get", "key": "c", "time": 2}
+              ]
+            ],
+            "expected": ["new", null, "C"],
+            "expected_exception": null,
+            "description": "overwrite resets expiry and recency"
+          },
+          {
+            "args": [
+              0,
+              [
+                {"op": "put", "key": "a", "value": 1, "ttl": 10, "time": 0},
+                {"op": "get", "key": "a", "time": 0}
+              ]
+            ],
+            "expected": [null],
+            "expected_exception": null,
+            "description": "zero capacity never stores entries"
+          },
+          {
+            "args": [-1, []],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "negative capacity contract"
+          }
+        ]
+      }
+    }
+  ]
+}

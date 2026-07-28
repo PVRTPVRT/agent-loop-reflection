@@ -1,0 +1,36 @@
+{
+  "dataset_id": "coding-v2-repair-pilot",
+  "dataset_fingerprint": "fb0ec9b20334497e",
+  "created_at": "2026-07-28T13:09:54.565834+00:00",
+  "results": [
+    {
+      "task_id": "ttl-lru-001",
+      "strategy": "adaptive",
+      "success": true,
+      "internal_success": false,
+      "duration_ms": 25339.806700001645,
+      "coding_rounds": 3,
+      "debate_rounds": 1,
+      "message": "Passed 5 V2 cases for simulate_ttl_lru",
+      "code": "from collections import OrderedDict\nfrom typing import Any, Dict, List\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Any]:\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    # key -> (value, expires_at)\n    cache: \"OrderedDict[str, Any]\" = OrderedDict()\n    results: List[Any] = []\n\n    def evict_expired(current_time: int) -> None:\n        # Remove all entries with expires_at <= current_time\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if expires_at <= current_time:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n\n        if not isinstance(t, int):\n            raise TypeError(\"event time must be an int\")\n\n        # Per contract: before executing each event, delete time >= expires_at\n        evict_expired(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            if not isinstance(ttl, int):\n                raise TypeError(\"ttl must be an int\")\n            if ttl <= 0:\n                raise ValueError(\"ttl must be a positive integer\")\n\n            expires_at = t + ttl\n\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)\n            cache.move_to_end(key, last=True)\n\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n                continue\n\n            value, expires_at = cache[key]\n            # TTL eviction is already done before each event; do not re-check here\n            cache.move_to_end(key, last=True)\n            results.append(value)\n        else:\n            raise ValueError(f\"unknown op: {op}\")\n\n    return results",
+      "usage": {
+        "model_calls": 4,
+        "input_tokens": 5339,
+        "output_tokens": 1878,
+        "total_tokens": 7217
+      }
+    }
+  ],
+  "aggregates": [
+    {
+      "strategy": "adaptive",
+      "total_tasks": 1,
+      "passed_tasks": 1,
+      "pass_rate": 1.0,
+      "average_duration_ms": 25339.806700001645,
+      "average_model_calls": 4.0,
+      "average_total_tokens": 7217.0,
+      "average_coding_rounds": 3.0
+    }
+  ]
+}

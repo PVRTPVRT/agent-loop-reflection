@@ -28,9 +28,11 @@ class FixedWorkflow:
     def __init__(self, task):
         self.task = task
         self.calls = 0
+        self.repair_context = None
 
-    def run(self, task):
+    def run(self, task, *, repair_context):
         self.calls += 1
+        self.repair_context = repair_context
         return EvaluationWorkflowResult(
             task_id=task.task_id,
             success=True,
@@ -86,6 +88,10 @@ def test_route_failure_falls_back_to_reflection(tmp_path) -> None:
 
     assert result.success is True
     assert workflow.calls == 1
+    assert workflow.repair_context.failed_code == "def add(a, b):\n    return a - b"
+    assert workflow.repair_context.verification_message == "failed route"
+    assert workflow.repair_context.routing_suite.function_name == "add"
     assert result.coding_rounds == 2
     trace = json.loads((tmp_path / "add-001.json").read_text(encoding="utf-8"))
     assert trace["path"] == "reflection"
+    assert trace["repair_context"]["verification_message"] == "failed route"

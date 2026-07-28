@@ -1,4 +1,4 @@
-"""Run the bounded adaptive Direct-to-Reflection V2 strategy."""
+"""Run a recorded-failure replay against the evidence-driven repair workflow."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import argparse
 import sys
 from pathlib import Path
 
-from agentloop.adaptive_strategy_v2 import AdaptiveStrategyV2
 from agentloop.benchmark import MeteredLLMProvider
 from agentloop.config import AppSettings, ConfigurationError
 from agentloop.contracts_v2 import ContractRegistryV2
@@ -18,6 +17,7 @@ from agentloop.repair_agents_v2 import (
     RepairEvaluationCoderAgent,
     RepairEvaluationCriticAgent,
 )
+from agentloop.repair_replay_strategy_v2 import RepairReplayStrategyV2
 from agentloop.repair_workflow_v2 import EvidenceDrivenRepairWorkflow
 from agentloop.resilient_benchmark import ResilientBenchmarkRunner
 from agentloop.role_budget_v2_llm import RoleBudgetV2Provider
@@ -25,21 +25,28 @@ from agentloop.routing_suites import RoutingSuiteRegistry
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run adaptive Direct -> Reflection V2.")
+    parser = argparse.ArgumentParser(
+        description="Replay a recorded failure through Repair V2."
+    )
     parser.add_argument(
         "--dataset",
         type=Path,
-        default=Path("benchmarks/datasets/coding-v2-full.json"),
+        default=Path("benchmarks/datasets/coding-v2-repair-pilot-r2.json"),
     )
     parser.add_argument(
         "--routing",
         type=Path,
-        default=Path("benchmarks/routing/coding-v2-routing.json"),
+        default=Path("benchmarks/routing/coding-v2-repair-routing.json"),
     )
     parser.add_argument(
         "--contracts",
         type=Path,
-        default=Path("benchmarks/contracts/coding-v2-contracts.json"),
+        default=Path("benchmarks/contracts/coding-v2-repair-contracts.json"),
+    )
+    parser.add_argument(
+        "--candidate",
+        type=Path,
+        default=Path("benchmarks/fixtures/ttl-lru-expiry-order-bug.py"),
     )
     parser.add_argument("--model", default="gpt-5.4-nano")
     parser.add_argument(
@@ -52,12 +59,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("benchmarks/results/adaptive-v2-nano.json"),
+        default=Path("benchmarks/results/repair-replay-v0.2-r2.json"),
     )
     parser.add_argument(
         "--trace-dir",
         type=Path,
-        default=Path("benchmarks/traces/adaptive-v2-nano"),
+        default=Path("benchmarks/traces/repair-replay-v0.2-r2"),
     )
     return parser
 
@@ -70,8 +77,16 @@ def main(argv: list[str] | None = None) -> int:
         dataset = EvaluationDataset.load(args.dataset)
         routing = RoutingSuiteRegistry.load(args.routing)
         contracts = ContractRegistryV2.load(args.contracts)
+        recorded_candidate = args.candidate.read_text(encoding="utf-8")
     except (ConfigurationError, OSError, ValueError) as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
+        return 2
+
+    if len(dataset.tasks) != 1:
+        print(
+            "Configuration error: repair replay currently requires one dataset task",
+            file=sys.stderr,
+        )
         return 2
 
     meter = MeteredLLMProvider(
@@ -91,11 +106,13 @@ def main(argv: list[str] | None = None) -> int:
         verifier=verifier,
         max_coding_rounds=settings.max_coding_rounds,
     )
-    strategy = AdaptiveStrategyV2(
+    strategy = RepairReplayStrategyV2(
         provider=meter,
         verifier=verifier,
-        reflection_workflow=workflow,
+        repair_workflow=workflow,
         routing_suites=routing,
+        recorded_candidate=recorded_candidate,
+        candidate_source=args.candidate.as_posix(),
         trace_dir=args.trace_dir,
     )
     report = ResilientBenchmarkRunner().run(
@@ -105,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     aggregate = report.aggregates[0]
     print(
-        f"adaptive: {aggregate.passed_tasks}/{aggregate.total_tasks}, "
+        f"repair-replay: {aggregate.passed_tasks}/{aggregate.total_tasks}, "
         f"calls/task={aggregate.average_model_calls:.2f}, "
         f"tokens/task={aggregate.average_total_tokens:.0f}, "
         f"duration/task={aggregate.average_duration_ms:.0f}ms"

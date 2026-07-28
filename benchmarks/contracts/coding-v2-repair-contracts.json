@@ -1,0 +1,33 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v2-repair-pilot",
+  "contracts": {
+    "ttl-lru-001": {
+      "function_name": "simulate_ttl_lru",
+      "oracle": "simulate_ttl_lru",
+      "parameters": [
+        {
+          "name": "capacity",
+          "types": ["integer"],
+          "finite": null,
+          "items_hashable": null
+        },
+        {
+          "name": "events",
+          "types": ["list"],
+          "finite": null,
+          "items_hashable": false
+        }
+      ],
+      "exceptions": [
+        {
+          "parameter": "capacity",
+          "operator": "<",
+          "value": 0,
+          "other_parameter": null,
+          "exception": "ValueError"
+        }
+      ]
+    }
+  }
+}
