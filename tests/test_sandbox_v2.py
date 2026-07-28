@@ -1,5 +1,6 @@
 import subprocess
 import sys
+from pathlib import Path
 
 from agentloop.sandbox_v2 import DockerSandboxV2
 
@@ -57,3 +58,23 @@ def test_v2_harness_rejects_wrong_exception(tmp_path) -> None:
 
     assert result.returncode == 1
     assert "expected ValueError, got TypeError" in result.stderr
+
+
+def test_runner_permissions_allow_unprivileged_container_user(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    chmod_calls: list[tuple[Path, int]] = []
+
+    def record_chmod(path: Path, mode: int) -> None:
+        chmod_calls.append((path, mode))
+
+    monkeypatch.setattr(Path, "chmod", record_chmod)
+
+    runner_path = DockerSandboxV2._write_runner_script(tmp_path, "print('ok')")
+
+    assert runner_path.read_text(encoding="utf-8") == "print('ok')"
+    assert chmod_calls == [
+        (tmp_path, 0o755),
+        (runner_path, 0o644),
+    ]

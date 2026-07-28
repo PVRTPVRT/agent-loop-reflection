@@ -1,4 +1,4 @@
-# Agent Loop Reflection V2
+﻿# Agent Loop Reflection V2
 
 一个可评测、可观测、成本感知的 Coding Agent 系统，支持 Direct、Lean
 Reflection 和 Adaptive 三种执行策略。
@@ -83,6 +83,3 @@ from agentloop.v2 import (
 - [重复实验结果](docs/knowledge-base/experiments/2026-07-27-v2-repeated-results.md)
 - [Adaptive 实验](docs/knowledge-base/experiments/2026-07-28-adaptive-v2-result.md)
 - [简历要点](docs/knowledge-base/resume-project-points.md)
-
-根目录旧 `README.md` 是早期版本。待 Windows ACL 允许修改已有文件后，
-本文件将替换它。
