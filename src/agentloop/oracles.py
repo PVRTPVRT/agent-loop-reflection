@@ -111,6 +111,52 @@ def oracle_simulate_ttl_lru(capacity, events):
     return outputs
 
 
+def oracle_decode_frames_by_chunk(chunks, max_frame_size):
+    if isinstance(max_frame_size, bool) or not isinstance(max_frame_size, int):
+        raise TypeError("max_frame_size must be an integer")
+    if max_frame_size < 0:
+        raise ValueError("max_frame_size must be non-negative")
+    if not isinstance(chunks, list):
+        raise TypeError("chunks must be a list")
+
+    buffer = bytearray()
+    expected_length = None
+    outputs = []
+    for index, chunk in enumerate(chunks, 1):
+        if not isinstance(chunk, str):
+            raise TypeError(f"chunk {index} must be a string")
+        if len(chunk) % 2 or any(
+            character not in "0123456789abcdefABCDEF"
+            for character in chunk
+        ):
+            raise ValueError(
+                f"chunk {index} must be an even-length hexadecimal string"
+            )
+        buffer.extend(bytes.fromhex(chunk))
+        completed = []
+        while True:
+            if expected_length is None:
+                if len(buffer) < 4:
+                    break
+                expected_length = int.from_bytes(buffer[:4], "big")
+                del buffer[:4]
+                if expected_length > max_frame_size:
+                    raise ValueError(
+                        f"frame length {expected_length} exceeds max_frame_size"
+                    )
+            if len(buffer) < expected_length:
+                break
+            payload = bytes(buffer[:expected_length])
+            del buffer[:expected_length]
+            completed.append(payload.hex())
+            expected_length = None
+        outputs.append(completed)
+
+    if expected_length is not None or buffer:
+        raise ValueError("incomplete frame at end of input")
+    return outputs
+
+
 ORACLES: dict[str, Callable[..., Any]] = {
     "add": oracle_add,
     "factorial": oracle_factorial,
@@ -121,4 +167,5 @@ ORACLES: dict[str, Callable[..., Any]] = {
     "deduplicate": oracle_deduplicate,
     "flatten_once": oracle_flatten_once,
     "simulate_ttl_lru": oracle_simulate_ttl_lru,
+    "decode_frames_by_chunk": oracle_decode_frames_by_chunk,
 }

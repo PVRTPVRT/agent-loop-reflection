@@ -1,6 +1,12 @@
+from pathlib import Path
+
 import pytest
 
-from agentloop.evaluation_v2_models import EvaluationCase, EvaluationSuite
+from agentloop.evaluation_v2_models import (
+    EvaluationCase,
+    EvaluationDataset,
+    EvaluationSuite,
+)
 from agentloop.evaluation_verifier import EvaluationCodeVerifier
 from agentloop.sandbox_v2 import DockerSandboxV2
 
@@ -31,3 +37,24 @@ def test_docker_accepts_required_value_error() -> None:
 
     assert result.success is True
     assert "Passed 1 V2 cases" in result.message
+
+
+def test_docker_accepts_frame_decoder_reference() -> None:
+    sandbox = DockerSandboxV2()
+    if not sandbox.is_available():
+        pytest.skip("Docker Engine is unavailable")
+
+    dataset = EvaluationDataset.load(
+        "benchmarks/datasets/coding-v3-frame-decoder-pilot.json"
+    )
+    code = Path("benchmarks/fixtures/frame-decoder-reference.py").read_text(
+        encoding="utf-8"
+    )
+
+    result = EvaluationCodeVerifier(sandbox=sandbox).verify(
+        code,
+        dataset.tasks[0].evaluation_suite,
+    )
+
+    assert result.success is True
+    assert "Passed 9 V2 cases" in result.message

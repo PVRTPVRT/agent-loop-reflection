@@ -1,0 +1,99 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-frame-decoder-pilot",
+  "description": "Pre-registered hidden cases for a chunk-aware length-prefixed frame decoder.",
+  "tasks": [
+    {
+      "task_id": "frame-decoder-001",
+      "category": "stream-state-machine",
+      "difficulty": "hard",
+      "prompt": "实现 Python 函数 decode_frames_by_chunk(chunks, max_frame_size)。chunks 是十六进制字符串列表，按顺序表示到达的字节块；每个字符串必须只包含偶数个十六进制字符，空字符串表示空 chunk。协议中每帧由 4 字节无符号大端 payload 长度和对应 payload 组成。函数必须逐 chunk 解码，返回与 chunks 等长的二维列表：第 i 个列表包含处理第 i 个 chunk 时刚完成的所有 payload，payload 输出为小写十六进制字符串。header、payload 和多帧均可跨任意 chunk 边界；零长度帧必须在其 header 完成的 chunk 中输出空字符串。max_frame_size 为非负整数；负数、非法 hex、声明长度超过 max_frame_size、或输入结束时残留不完整 header/payload 均抛出 ValueError。不得使用全局状态、真实时间或修改输入。",
+      "evaluation_suite": {
+        "function_name": "decode_frames_by_chunk",
+        "test_cases": [
+          {
+            "args": [
+              ["00", "00", "00", "03", "61", "62", "63", "00", "00", "00", "00", "00", "00", "00", "02", "ff", "00"],
+              3
+            ],
+            "expected": [[], [], [], [], [], [], ["616263"], [], [], [], [""], [], [], [], [], [], ["ff00"]],
+            "expected_exception": null,
+            "description": "one-byte chunks across payload, zero frame, and binary payload"
+          },
+          {
+            "args": [
+              ["", "00000001", "", "41", ""],
+              1
+            ],
+            "expected": [[], [], [], ["41"], []],
+            "expected_exception": null,
+            "description": "empty chunks preserve output alignment"
+          },
+          {
+            "args": [
+              ["00000002AB", "CD"],
+              2
+            ],
+            "expected": [[], ["abcd"]],
+            "expected_exception": null,
+            "description": "uppercase input is normalized to lowercase output"
+          },
+          {
+            "args": [
+              ["00000001GG"],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "non-hex characters are rejected"
+          },
+          {
+            "args": [
+              ["0"],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "odd-length hex chunks are rejected"
+          },
+          {
+            "args": [
+              ["0000"],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "trailing partial header is rejected"
+          },
+          {
+            "args": [
+              ["000000036162"],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "trailing partial payload is rejected"
+          },
+          {
+            "args": [
+              ["00000003"],
+              2
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "declared payload larger than max is rejected"
+          },
+          {
+            "args": [
+              [],
+              -1
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "negative max frame size follows the public contract"
+          }
+        ]
+      }
+    }
+  ]
+}
