@@ -12,6 +12,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - A typed artifact/evaluation boundary for source code, repository patches, function
   cases, and sandboxed test-command specifications.
 - A generic verifier protocol with an adapter for the existing function-case verifier.
+- Trusted repository fixtures, content fingerprints, disposable patch workspaces, and a
+  deterministic repair/non-fix mutation corpus.
+- End-to-end repository patch verification through tokenized tests in Managed Docker.
 
 ### Changed
 
@@ -20,6 +23,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The installed `agentloop` command and `python -m agentloop` now use the single V2
   Direct/Reflection/Adaptive dispatcher.
 - Deterministic and Docker test stages no longer execute Managed Docker tests twice.
+- Function cases and repository test commands now share one named-container execution
+  lifecycle.
+- Repository artifacts must identify an exact trusted fixture revision.
 
 ### Removed
 
@@ -32,6 +38,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Test-command specifications reject blank tokens, absolute or escaping working
   directories, unbounded timeouts, and network-enabled execution.
+- Repository verification rejects binary, symlink, NUL, oversized, absolute, drive, and
+  traversal patches or changes to protected fixture tests; execution uses a read-only
+  workspace and no network.
 
 ## [0.3.0] - 2026-07-31
 

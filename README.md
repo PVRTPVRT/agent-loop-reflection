@@ -37,6 +37,7 @@ flowchart LR
 - Evidence-Driven Repair：失败候选和真实验证证据跨工作流传递
 - Repair attempt history：后续轮次能看到此前补丁及其最新失败
 - Managed Docker：非 root、只读文件系统、无网络、资源限制与强制清理
+- Repository Patch 验证：可信 fixture 指纹、路径安全检查、一次性副本与真实测试命令
 - 合取成功门控：内部修复失败不能被覆盖不足的隐藏集误判为成功
 - 可选 OpenTelemetry：展示 Agent、模型、验证、Token 和耗时 Span，不记录密钥、
   prompt、生成代码或测试参数
@@ -103,9 +104,9 @@ v0.3 困难任务矩阵与失败重放：
 
 ```text
 Ruff: passed
-deterministic non-Docker tests: 104 passed
-Docker integration tests: 5 passed
-unique test functions in the release gate: 109
+deterministic non-Docker tests: 121 passed
+Docker integration tests: 7 passed
+unique test functions in the release gate: 128
 ```
 
 ## 已验证结果
@@ -172,6 +173,7 @@ from agentloop.v2 import (
 - [OpenTelemetry / Phoenix 架构](docs/knowledge-base/architecture/opentelemetry.md)
 - [Evidence-Driven Repair 架构](docs/knowledge-base/architecture/evidence-driven-repair.md)
 - [v0.2 闭环实验与 R1 假阳性复盘](docs/knowledge-base/experiments/2026-07-28-v0.2-repair-closed-loop.md)
+- [ADR-004：Managed Repository Verification](docs/knowledge-base/decisions/ADR-004-managed-repository-verification.md)
 - [ADR-003：Artifact 与 Evaluation 边界](docs/knowledge-base/decisions/ADR-003-artifact-evaluation-boundary.md)
 - [ADR-002：合取成功门控](docs/knowledge-base/decisions/ADR-002-conjunctive-success-gate.md)
 - [安全执行决策](docs/knowledge-base/decisions/ADR-001-secure-execution.md)
