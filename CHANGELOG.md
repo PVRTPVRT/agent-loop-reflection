@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- A typed artifact/evaluation boundary for source code, repository patches, function
+  cases, and sandboxed test-command specifications.
+- A generic verifier protocol with an adapter for the existing function-case verifier.
+
+### Changed
+
+- Adaptive, evidence-driven repair, and recorded-failure replay now pass typed artifacts
+  and evaluation specifications while retaining the v0.3 constructor interface.
+
+### Security
+
+- Test-command specifications reject blank tokens, absolute or escaping working
+  directories, unbounded timeouts, and network-enabled execution.
+
 ## [0.3.0] - 2026-07-31
 
 ### Added

@@ -163,6 +163,7 @@ from agentloop.v2 import (
 - [OpenTelemetry / Phoenix 架构](docs/knowledge-base/architecture/opentelemetry.md)
 - [Evidence-Driven Repair 架构](docs/knowledge-base/architecture/evidence-driven-repair.md)
 - [v0.2 闭环实验与 R1 假阳性复盘](docs/knowledge-base/experiments/2026-07-28-v0.2-repair-closed-loop.md)
+- [ADR-003：Artifact 与 Evaluation 边界](docs/knowledge-base/decisions/ADR-003-artifact-evaluation-boundary.md)
 - [ADR-002：合取成功门控](docs/knowledge-base/decisions/ADR-002-conjunctive-success-gate.md)
 - [安全执行决策](docs/knowledge-base/decisions/ADR-001-secure-execution.md)
 - [测试说明](docs/knowledge-base/TESTING.md)
