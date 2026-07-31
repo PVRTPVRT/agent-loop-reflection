@@ -61,6 +61,9 @@ jobs:
       - name: Verify Docker Engine
         run: docker version
 
+      - name: Validate observability Compose configuration
+        run: docker compose -f compose.observability.yaml config -q
+
       - name: Run Docker integration tests
         run: >-
           python -m pytest -q

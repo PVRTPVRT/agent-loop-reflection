@@ -1,0 +1,27 @@
+name: agentloop-observability
+
+services:
+  phoenix:
+    # Arize Phoenix 19.11.0, pinned to the locally verified OCI digest.
+    image: arizephoenix/phoenix@sha256:747cf21b27f95709f97a300bf55d1f0770089cceeb4c8c098fd7b2bfd78cf303
+    pull_policy: missing
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6006:6006"
+      - "127.0.0.1:4317:4317"
+    volumes:
+      - phoenix-data:/root/.phoenix
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:6006/', timeout=3).read()"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  phoenix-data:

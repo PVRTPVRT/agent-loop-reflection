@@ -36,13 +36,28 @@ the extra produces a configuration error instead of silently disabling traces.
 
 ## Run Phoenix locally
 
-The official Phoenix image exposes the UI and OTLP/HTTP collector on port 6006:
+The repository includes a reproducible Docker Compose configuration for Phoenix 19.11.0.
+The OCI digest is pinned, ports are bound to localhost, the SQLite data directory uses a
+named volume, and Compose waits for an HTTP health check.
 
 ```powershell
-docker run --rm -p 6006:6006 -p 4317:4317 arizephoenix/phoenix:latest
+.\scripts\start-phoenix.cmd
 ```
 
-For a real deployment, pin an explicit Phoenix image version and attach persistent storage.
+The script opens <http://localhost:6006> after the service becomes healthy. Stop the service
+without deleting its persistent volume:
+
+```powershell
+.\scripts\stop-phoenix.cmd
+```
+
+A workstation that already has the earlier `agentloop-phoenix` demo container can keep using
+it. To switch to the persistent Compose service without deleting the old container:
+
+```powershell
+docker stop agentloop-phoenix
+.\scripts\start-phoenix.cmd
+```
 
 Add these values to `.env`:
 
