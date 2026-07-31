@@ -1,0 +1,97 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-hard-matrix",
+  "contracts": {
+    "ttl-lru-001": {
+      "function_name": "simulate_ttl_lru",
+      "oracle": "simulate_ttl_lru",
+      "parameters": [
+        {
+          "name": "capacity",
+          "types": [
+            "integer"
+          ],
+          "finite": null,
+          "items_hashable": null
+        },
+        {
+          "name": "events",
+          "types": [
+            "list"
+          ],
+          "finite": null,
+          "items_hashable": false
+        }
+      ],
+      "exceptions": [
+        {
+          "parameter": "capacity",
+          "operator": "<",
+          "value": 0,
+          "other_parameter": null,
+          "exception": "ValueError"
+        }
+      ]
+    },
+    "frame-decoder-001": {
+      "function_name": "decode_frames_by_chunk",
+      "oracle": "decode_frames_by_chunk",
+      "parameters": [
+        {
+          "name": "chunks",
+          "types": [
+            "list"
+          ],
+          "finite": null,
+          "items_hashable": false
+        },
+        {
+          "name": "max_frame_size",
+          "types": [
+            "integer"
+          ],
+          "finite": null,
+          "items_hashable": null
+        }
+      ],
+      "exceptions": [
+        {
+          "parameter": "max_frame_size",
+          "operator": "<",
+          "value": 0,
+          "other_parameter": null,
+          "exception": "ValueError"
+        }
+      ],
+      "dynamic_exceptions": [
+        "ValueError"
+      ]
+    },
+    "idempotent-ledger-001": {
+      "function_name": "process_idempotent_transfers",
+      "oracle": "process_idempotent_transfers",
+      "parameters": [
+        {
+          "name": "initial_balances",
+          "types": [
+            "object"
+          ],
+          "finite": null,
+          "items_hashable": null
+        },
+        {
+          "name": "events",
+          "types": [
+            "list"
+          ],
+          "finite": null,
+          "items_hashable": false
+        }
+      ],
+      "exceptions": [],
+      "dynamic_exceptions": [
+        "ValueError"
+      ]
+    }
+  }
+}

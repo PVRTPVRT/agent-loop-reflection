@@ -18,6 +18,7 @@ from agentloop.benchmark_models import (
 from agentloop.llm import LLMProvider
 from agentloop.models import CodingTask, LLMRequest, LLMResponse
 from agentloop.parsing import extract_python_code
+from agentloop.telemetry import set_span_attributes, traced_span
 from agentloop.verifier import CodeVerifier
 from agentloop.workflow import ReflectionWorkflow
 
@@ -36,12 +37,32 @@ class MeteredLLMProvider:
         self.total_tokens = 0
 
     def generate(self, request: LLMRequest) -> LLMResponse:
-        response = self.provider.generate(request)
-        self.model_calls += 1
-        self.input_tokens += response.usage.input_tokens
-        self.output_tokens += response.usage.output_tokens
-        self.total_tokens += response.usage.total_tokens
-        return response
+        with traced_span(
+            "agentloop.llm.generate",
+            {
+                "gen_ai.operation.name": "generate",
+                "gen_ai.request.max_tokens": request.max_output_tokens,
+                "agentloop.agent": request.metadata.get("agent"),
+                "agentloop.strategy": request.metadata.get("strategy"),
+                "agentloop.task.id": request.metadata.get("task_id"),
+                "agentloop.repair.round": request.metadata.get("repair_round"),
+            },
+        ) as span:
+            response = self.provider.generate(request)
+            self.model_calls += 1
+            self.input_tokens += response.usage.input_tokens
+            self.output_tokens += response.usage.output_tokens
+            self.total_tokens += response.usage.total_tokens
+            set_span_attributes(
+                span,
+                {
+                    "gen_ai.request.model": response.model,
+                    "gen_ai.usage.input_tokens": response.usage.input_tokens,
+                    "gen_ai.usage.output_tokens": response.usage.output_tokens,
+                    "gen_ai.usage.total_tokens": response.usage.total_tokens,
+                },
+            )
+            return response
 
     def snapshot(self) -> UsageMetrics:
         return UsageMetrics(

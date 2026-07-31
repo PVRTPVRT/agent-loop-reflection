@@ -4,9 +4,20 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+.hypothesis/
+.local-demo/
+.local-knowledge-base/
 .mypy_cache/
 coverage.xml
 htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Unversioned local smoke/pilot output. Curated release evidence uses
+# version-specific names and remains tracked.
+benchmarks/results/*smoke*.json
+benchmarks/results/*nano*.json
+benchmarks/traces/*smoke*/
+benchmarks/traces/*nano*/
+benchmarks/traces/repeated/

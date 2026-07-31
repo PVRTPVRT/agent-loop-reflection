@@ -22,6 +22,7 @@ from agentloop.repair_workflow_v2 import EvidenceDrivenRepairWorkflow
 from agentloop.resilient_benchmark import ResilientBenchmarkRunner
 from agentloop.role_budget_v2_llm import RoleBudgetV2Provider
 from agentloop.routing_suites import RoutingSuiteRegistry
+from agentloop.telemetry import TelemetryConfigurationError, telemetry_session
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -115,11 +116,16 @@ def main(argv: list[str] | None = None) -> int:
         candidate_source=args.candidate.as_posix(),
         trace_dir=args.trace_dir,
     )
-    report = ResilientBenchmarkRunner().run(
-        dataset,
-        [strategy],
-        checkpoint_path=args.output,
-    )
+    try:
+        with telemetry_session():
+            report = ResilientBenchmarkRunner().run(
+                dataset,
+                [strategy],
+                checkpoint_path=args.output,
+            )
+    except TelemetryConfigurationError as exc:
+        print(f"Telemetry configuration error: {exc}", file=sys.stderr)
+        return 2
     aggregate = report.aggregates[0]
     print(
         f"repair-replay: {aggregate.passed_tasks}/{aggregate.total_tasks}, "

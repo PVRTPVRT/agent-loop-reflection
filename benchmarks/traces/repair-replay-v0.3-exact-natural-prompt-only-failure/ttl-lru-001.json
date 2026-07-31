@@ -1,0 +1,570 @@
+{
+  "task": {
+    "task_id": "ttl-lru-001",
+    "category": "state-machine",
+    "difficulty": "hard",
+    "prompt": "实现 Python 函数 simulate_ttl_lru(capacity, events)，返回所有 get 事件的结果列表。capacity 为非负整数，负数时抛出 ValueError。events 按非递减整数 time 排列。put 事件格式为 {op:'put', key:str, value:any, ttl:正整数, time:int}；get 事件格式为 {op:'get', key:str, time:int}。每个事件执行前，先删除 time >= expires_at 的条目。put 会写入或覆盖条目，expires_at=time+ttl，并将其设为最近使用；随后按 LRU 淘汰直到不超过 capacity。get 未命中返回 None，命中返回 value 并更新为最近使用。capacity=0 时不保存条目。不得使用真实时间或全局状态。",
+    "evaluation_suite": {
+      "function_name": "simulate_ttl_lru",
+      "test_cases": [
+        {
+          "args": [
+            3,
+            [
+              {
+                "op": "put",
+                "key": "a",
+                "value": "A",
+                "ttl": 100,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "x",
+                "value": "X",
+                "ttl": 2,
+                "time": 0
+              },
+              {
+                "op": "get",
+                "key": "x",
+                "time": 1
+              },
+              {
+                "op": "put",
+                "key": "b",
+                "value": "B",
+                "ttl": 100,
+                "time": 1
+              },
+              {
+                "op": "put",
+                "key": "c",
+                "value": "C",
+                "ttl": 100,
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "x",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "b",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "c",
+                "time": 2
+              }
+            ]
+          ],
+          "expected": [
+            "X",
+            "A",
+            null,
+            "B",
+            "C"
+          ],
+          "expected_exception": null,
+          "description": "expired MRU entry must be removed even when an unexpired key is LRU"
+        },
+        {
+          "args": [
+            2,
+            [
+              {
+                "op": "put",
+                "key": "a",
+                "value": "A",
+                "ttl": 10,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "b",
+                "value": "B",
+                "ttl": 10,
+                "time": 0
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 1
+              },
+              {
+                "op": "put",
+                "key": "c",
+                "value": "C",
+                "ttl": 10,
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "b",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 3
+              },
+              {
+                "op": "get",
+                "key": "c",
+                "time": 3
+              }
+            ]
+          ],
+          "expected": [
+            "A",
+            null,
+            "A",
+            "C"
+          ],
+          "expected_exception": null,
+          "description": "get updates recency before capacity eviction"
+        },
+        {
+          "args": [
+            2,
+            [
+              {
+                "op": "put",
+                "key": "a",
+                "value": 1,
+                "ttl": 2,
+                "time": 0
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 1
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 2
+              },
+              {
+                "op": "put",
+                "key": "b",
+                "value": 2,
+                "ttl": 1,
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "b",
+                "time": 3
+              }
+            ]
+          ],
+          "expected": [
+            1,
+            null,
+            null
+          ],
+          "expected_exception": null,
+          "description": "entries expire exactly at expires_at"
+        },
+        {
+          "args": [
+            2,
+            [
+              {
+                "op": "put",
+                "key": "a",
+                "value": "old",
+                "ttl": 2,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "b",
+                "value": "B",
+                "ttl": 10,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "a",
+                "value": "new",
+                "ttl": 10,
+                "time": 1
+              },
+              {
+                "op": "put",
+                "key": "c",
+                "value": "C",
+                "ttl": 10,
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "b",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "c",
+                "time": 2
+              }
+            ]
+          ],
+          "expected": [
+            "new",
+            null,
+            "C"
+          ],
+          "expected_exception": null,
+          "description": "overwrite resets expiry and recency"
+        },
+        {
+          "args": [
+            0,
+            [
+              {
+                "op": "put",
+                "key": "a",
+                "value": 1,
+                "ttl": 10,
+                "time": 0
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 0
+              }
+            ]
+          ],
+          "expected": [
+            null
+          ],
+          "expected_exception": null,
+          "description": "zero capacity never stores entries"
+        },
+        {
+          "args": [
+            -1,
+            []
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "negative capacity contract"
+        }
+      ]
+    }
+  },
+  "experiment_type": "recorded-failure-replay",
+  "candidate_source": "benchmarks/fixtures/ttl-lru-v0.3-natural-direct-failure.py",
+  "recorded_candidate": "from collections import OrderedDict\nfrom typing import Any, Dict, List, Optional\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Optional[Any]]:\n    \"\"\"\n    Simulate a TTL-based LRU cache.\n\n    Rules:\n    - capacity: non-negative integer; negative raises ValueError\n    - events: sorted by non-decreasing integer time\n    - Before each event, delete entries with time >= expires_at\n    - put(key, value, ttl): insert/overwrite, expires_at = time + ttl, mark MRU, LRU-evict to capacity\n    - get(key): if not hit return None, else return value and mark MRU\n    - capacity == 0 stores nothing\n    \"\"\"\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    # OrderedDict maintains LRU order: oldest -> newest (MRU at end)\n    # value stored as (value, expires_at)\n    cache: \"OrderedDict[str, tuple[Any, int]]\" = OrderedDict()\n\n    results: List[Optional[Any]] = []\n\n    def purge(current_time: int) -> None:\n        # Remove all entries with expires_at <= current_time\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if current_time >= expires_at:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n        purge(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            expires_at = t + ttl\n\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)  # insert as MRU\n\n            # Evict LRU until within capacity\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n            else:\n                value, _expires_at = cache[key]\n                # Mark MRU\n                cache.move_to_end(key, last=True)\n                results.append(value)\n        else:\n            raise ValueError(f\"Unknown op: {op}\")\n\n    return results\n",
+  "recorded_failure": {
+    "success": false,
+    "message": "Case 1 (expiry occurs before LRU eviction at the same timestamp): expected ['A', None, 'B', 'C'], got ['A', None, None, 'C']"
+  },
+  "repair_context": {
+    "task_id": "ttl-lru-001",
+    "failed_code": "from collections import OrderedDict\nfrom typing import Any, Dict, List, Optional\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Optional[Any]]:\n    \"\"\"\n    Simulate a TTL-based LRU cache.\n\n    Rules:\n    - capacity: non-negative integer; negative raises ValueError\n    - events: sorted by non-decreasing integer time\n    - Before each event, delete entries with time >= expires_at\n    - put(key, value, ttl): insert/overwrite, expires_at = time + ttl, mark MRU, LRU-evict to capacity\n    - get(key): if not hit return None, else return value and mark MRU\n    - capacity == 0 stores nothing\n    \"\"\"\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    # OrderedDict maintains LRU order: oldest -> newest (MRU at end)\n    # value stored as (value, expires_at)\n    cache: \"OrderedDict[str, tuple[Any, int]]\" = OrderedDict()\n\n    results: List[Optional[Any]] = []\n\n    def purge(current_time: int) -> None:\n        # Remove all entries with expires_at <= current_time\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if current_time >= expires_at:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n        purge(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            expires_at = t + ttl\n\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)  # insert as MRU\n\n            # Evict LRU until within capacity\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n            else:\n                value, _expires_at = cache[key]\n                # Mark MRU\n                cache.move_to_end(key, last=True)\n                results.append(value)\n        else:\n            raise ValueError(f\"Unknown op: {op}\")\n\n    return results\n",
+    "routing_suite": {
+      "function_name": "simulate_ttl_lru",
+      "test_cases": [
+        {
+          "args": [
+            2,
+            [
+              {
+                "op": "put",
+                "key": "a",
+                "value": "A",
+                "ttl": 2,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "b",
+                "value": "B",
+                "ttl": 10,
+                "time": 0
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 1
+              },
+              {
+                "op": "put",
+                "key": "c",
+                "value": "C",
+                "ttl": 10,
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "b",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "c",
+                "time": 2
+              }
+            ]
+          ],
+          "expected": [
+            "A",
+            null,
+            "B",
+            "C"
+          ],
+          "expected_exception": null,
+          "description": "expiry occurs before LRU eviction at the same timestamp"
+        },
+        {
+          "args": [
+            1,
+            [
+              {
+                "op": "put",
+                "key": "x",
+                "value": "old",
+                "ttl": 1,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "x",
+                "value": "new",
+                "ttl": 5,
+                "time": 1
+              },
+              {
+                "op": "get",
+                "key": "x",
+                "time": 5
+              },
+              {
+                "op": "get",
+                "key": "x",
+                "time": 6
+              }
+            ]
+          ],
+          "expected": [
+            "new",
+            null
+          ],
+          "expected_exception": null,
+          "description": "overwrite resets value, recency, and expiry"
+        }
+      ]
+    },
+    "verification_message": "Case 1 (expiry occurs before LRU eviction at the same timestamp): expected ['A', None, 'B', 'C'], got ['A', None, None, 'C']"
+  },
+  "workflow_result": {
+    "task_id": "ttl-lru-001",
+    "success": false,
+    "code": "from collections import OrderedDict\nfrom typing import Any, Dict, List, Optional, Tuple\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Optional[Any]]:\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    cache: \"OrderedDict[str, Tuple[Any, int]]\" = OrderedDict()  # key -> (value, expires_at)\n    results: List[Optional[Any]] = []\n\n    def purge(current_time: int) -> None:\n        # Contract: before each event, delete entries with time >= expires_at\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if current_time >= expires_at:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n\n        purge(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            expires_at = t + ttl\n\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)  # insert as MRU\n\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n            else:\n                value, _expires_at = cache[key]\n                cache.move_to_end(key, last=True)\n                results.append(value)\n        else:\n            raise ValueError(f\"Unknown op: {op}\")\n\n    return results\n\n\nif __name__ == \"__main__\":\n    # Pre-context front-run simulation for the first failing case\n    # capacity=2\n    # put a ttl=2 @0 (expires_at=2)\n    # get a @2 should be None due to purge time >= expires_at\n    cap = 2\n    evs = [\n        {\"op\": \"put\", \"key\": \"a\", \"value\": \"A\", \"ttl\": 2, \"time\": 0},\n        {\"op\": \"put\", \"key\": \"b\", \"value\": \"B\", \"ttl\": 10, \"time\": 0},\n        {\"op\": \"get\", \"key\": \"a\", \"time\": 1},\n        {\"op\": \"put\", \"key\": \"c\", \"value\": \"C\", \"ttl\": 10, \"time\": 2},\n        {\"op\": \"get\", \"key\": \"a\", \"time\": 2},\n        {\"op\": \"get\", \"key\": \"b\", \"time\": 2},\n        {\"op\": \"get\", \"key\": \"c\", \"time\": 2},\n    ]\n    out = simulate_ttl_lru(cap, evs)\n    expected = [\"A\", None, \"B\", \"C\"]\n    assert out == expected, (out, expected)",
+    "test_suite": {
+      "function_name": "simulate_ttl_lru",
+      "test_cases": [
+        {
+          "args": [
+            2,
+            [
+              {
+                "op": "put",
+                "key": "a",
+                "value": "A",
+                "ttl": 2,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "b",
+                "value": "B",
+                "ttl": 10,
+                "time": 0
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 1
+              },
+              {
+                "op": "put",
+                "key": "c",
+                "value": "C",
+                "ttl": 10,
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "a",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "b",
+                "time": 2
+              },
+              {
+                "op": "get",
+                "key": "c",
+                "time": 2
+              }
+            ]
+          ],
+          "expected": [
+            "A",
+            null,
+            "B",
+            "C"
+          ],
+          "expected_exception": null,
+          "description": "expiry occurs before LRU eviction at the same timestamp"
+        },
+        {
+          "args": [
+            1,
+            [
+              {
+                "op": "put",
+                "key": "x",
+                "value": "old",
+                "ttl": 1,
+                "time": 0
+              },
+              {
+                "op": "put",
+                "key": "x",
+                "value": "new",
+                "ttl": 5,
+                "time": 1
+              },
+              {
+                "op": "get",
+                "key": "x",
+                "time": 5
+              },
+              {
+                "op": "get",
+                "key": "x",
+                "time": 6
+              }
+            ]
+          ],
+          "expected": [
+            "new",
+            null
+          ],
+          "expected_exception": null,
+          "description": "overwrite resets value, recency, and expiry"
+        }
+      ]
+    },
+    "debate_rounds": 2,
+    "coding_rounds": 2,
+    "final_message": "AssertionError: (['A', None, None, 'C'], ['A', None, 'B', 'C'])",
+    "events": [
+      {
+        "agent": "workflow",
+        "event_type": "repair_context_received",
+        "message": "Case 1 (expiry occurs before LRU eviction at the same timestamp): expected ['A', None, 'B', 'C'], got ['A', None, None, 'C']",
+        "metadata": {
+          "failed_code": "from collections import OrderedDict\nfrom typing import Any, Dict, List, Optional\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Optional[Any]]:\n    \"\"\"\n    Simulate a TTL-based LRU cache.\n\n    Rules:\n    - capacity: non-negative integer; negative raises ValueError\n    - events: sorted by non-decreasing integer time\n    - Before each event, delete entries with time >= expires_at\n    - put(key, value, ttl): insert/overwrite, expires_at = time + ttl, mark MRU, LRU-evict to capacity\n    - get(key): if not hit return None, else return value and mark MRU\n    - capacity == 0 stores nothing\n    \"\"\"\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    # OrderedDict maintains LRU order: oldest -> newest (MRU at end)\n    # value stored as (value, expires_at)\n    cache: \"OrderedDict[str, tuple[Any, int]]\" = OrderedDict()\n\n    results: List[Optional[Any]] = []\n\n    def purge(current_time: int) -> None:\n        # Remove all entries with expires_at <= current_time\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if current_time >= expires_at:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n        purge(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            expires_at = t + ttl\n\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)  # insert as MRU\n\n            # Evict LRU until within capacity\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n            else:\n                value, _expires_at = cache[key]\n                # Mark MRU\n                cache.move_to_end(key, last=True)\n                results.append(value)\n        else:\n            raise ValueError(f\"Unknown op: {op}\")\n\n    return results\n"
+        }
+      },
+      {
+        "agent": "critic",
+        "event_type": "repair_diagnosed",
+        "message": "**故障语句（首个分歧点）**  \n`purge(current_time): if current_time >= expires_at: cache.popitem(last=False)`  \n以及在循环中：`purge(t)` 发生在每个事件执行前。\n\n**失效不变量**  \n合约要求“先删除 time >= expires_at 的条目”，但**同一 timestamp 上**的 LRU 淘汰与过期删除谁先谁后影响命中结果。失败用例期望在 `time=2` 时，过期删除不应先于本轮 LRU 淘汰导致的状态变化（expected 仍能命中 B，而 got 却把 B 过期后删掉了）。\n\n**证据（从 actual/expected 首差反向）**  \nCase1：expected 第3个结果为 `'B'`，got 为 `None`。  \n唯一可能在第3个 `get time=2 (key='b')` 前改变 `b` 是否仍在 cache 的，是 `purge(t)` 在 `time=2` 时把 `b` 删除了。因为实现用 `current_time >= expires_at`，当 `b` 的 `expires_at == 2` 时会被删除，从而造成 `get b` 失配。\n\n**最小修复**  \n将 purge 条件改为仅删除严格过期：  \n把 `current_time >= expires_at` 改为 `current_time > expires_at`。  \n（即“time >= expires_at”在本实现被提前成“到达时刻即删除”，需延后一个事件边界。）\n\n**反事实验证（模拟失败用例）**  \n在 Case1 的 `time=2`：若 `b.expires_at == 2`，修复后 `purge(2)` 不会删 `b`，因此 `get b at time=2` 会命中并更新 MRU，结果从 `None` 变为 `'B'`，从而与 expected `['A', None, 'B', 'C']` 对齐。",
+        "metadata": {
+          "round": 1
+        }
+      },
+      {
+        "agent": "coder",
+        "event_type": "code_repaired",
+        "message": "",
+        "metadata": {
+          "round": 1,
+          "changed": true
+        }
+      },
+      {
+        "agent": "verifier",
+        "event_type": "repair_verified",
+        "message": "Case 1 (expiry occurs before LRU eviction at the same timestamp): expected ['A', None, 'B', 'C'], got ['A', 'A', None, 'C']",
+        "metadata": {
+          "round": 1,
+          "success": false
+        }
+      },
+      {
+        "agent": "critic",
+        "event_type": "repair_diagnosed",
+        "message": "**故障语句（首个分歧点）**  \n> `if current_time > expires_at:`\n\n**失效不变量**  \n契约要求：每个事件执行前“删除 time >= expires_at 的条目”。因此不变量应为：到达事件时间 `t` 时，所有 `expires_at <= t` 的键都必须先被移除，才能影响同一 `t` 时刻的 LRU 淘汰/命中。当前语句把“恰好到期”（`current_time == expires_at`）保留了，破坏该不变量。\n\n**证据（来自候选与失败路由）**  \n候选中 `purge(t)` 用 `current_time > expires_at` 仅清理严格过期；失败用例“expiry occurs before LRU eviction at the same timestamp”期望 `get a @2` 为 `None`，但实际为 `A`，说明 `a` 在 `time==expires_at` 时仍留在 cache，进而改变了 LRU 淘汰与命中结果。\n\n**最小修复**  \n把 purge 条件改为严格符合契约：  \n- 从 `current_time > expires_at`  \n- 改为 `current_time >= expires_at`\n\n**反事实验证（失败用例）**  \n用例：capacity=2，`put a ttl=2 @0` ⇒ `expires_at=2`。在 `get a @2` 前 purge 应删除 `a`（`2 >= 2`）。修复后 `get a @2` 变 `None`，从而不会因 `a` 仍存在而错误阻止 LRU 淘汰，结果列表应从 `['A','A',None,'C']` 变为期望 `['A',None,'B','C']`。",
+        "metadata": {
+          "round": 2
+        }
+      },
+      {
+        "agent": "coder",
+        "event_type": "code_repaired",
+        "message": "",
+        "metadata": {
+          "round": 2,
+          "changed": true
+        }
+      },
+      {
+        "agent": "verifier",
+        "event_type": "repair_verified",
+        "message": "AssertionError: (['A', None, None, 'C'], ['A', None, 'B', 'C'])",
+        "metadata": {
+          "round": 2,
+          "success": false
+        }
+      }
+    ]
+  },
+  "hidden_verification": {
+    "success": false,
+    "message": "AssertionError: (['A', None, None, 'C'], ['A', None, 'B', 'C'])"
+  },
+  "result": {
+    "task_id": "ttl-lru-001",
+    "strategy": "repair-replay",
+    "success": false,
+    "internal_success": false,
+    "duration_ms": 24772.702399997797,
+    "coding_rounds": 2,
+    "debate_rounds": 2,
+    "message": "AssertionError: (['A', None, None, 'C'], ['A', None, 'B', 'C'])",
+    "code": "from collections import OrderedDict\nfrom typing import Any, Dict, List, Optional, Tuple\n\n\ndef simulate_ttl_lru(capacity: int, events: List[Dict[str, Any]]) -> List[Optional[Any]]:\n    if capacity < 0:\n        raise ValueError(\"capacity must be non-negative\")\n\n    cache: \"OrderedDict[str, Tuple[Any, int]]\" = OrderedDict()  # key -> (value, expires_at)\n    results: List[Optional[Any]] = []\n\n    def purge(current_time: int) -> None:\n        # Contract: before each event, delete entries with time >= expires_at\n        while cache:\n            k = next(iter(cache))\n            _, expires_at = cache[k]\n            if current_time >= expires_at:\n                cache.popitem(last=False)\n            else:\n                break\n\n    for ev in events:\n        op = ev.get(\"op\")\n        t = ev.get(\"time\")\n\n        purge(t)\n\n        if op == \"put\":\n            if capacity == 0:\n                continue\n\n            key = ev[\"key\"]\n            value = ev[\"value\"]\n            ttl = ev[\"ttl\"]\n            expires_at = t + ttl\n\n            if key in cache:\n                cache.pop(key, None)\n            cache[key] = (value, expires_at)  # insert as MRU\n\n            while len(cache) > capacity:\n                cache.popitem(last=False)\n\n        elif op == \"get\":\n            key = ev[\"key\"]\n            if key not in cache:\n                results.append(None)\n            else:\n                value, _expires_at = cache[key]\n                cache.move_to_end(key, last=True)\n                results.append(value)\n        else:\n            raise ValueError(f\"Unknown op: {op}\")\n\n    return results\n\n\nif __name__ == \"__main__\":\n    # Pre-context front-run simulation for the first failing case\n    # capacity=2\n    # put a ttl=2 @0 (expires_at=2)\n    # get a @2 should be None due to purge time >= expires_at\n    cap = 2\n    evs = [\n        {\"op\": \"put\", \"key\": \"a\", \"value\": \"A\", \"ttl\": 2, \"time\": 0},\n        {\"op\": \"put\", \"key\": \"b\", \"value\": \"B\", \"ttl\": 10, \"time\": 0},\n        {\"op\": \"get\", \"key\": \"a\", \"time\": 1},\n        {\"op\": \"put\", \"key\": \"c\", \"value\": \"C\", \"ttl\": 10, \"time\": 2},\n        {\"op\": \"get\", \"key\": \"a\", \"time\": 2},\n        {\"op\": \"get\", \"key\": \"b\", \"time\": 2},\n        {\"op\": \"get\", \"key\": \"c\", \"time\": 2},\n    ]\n    out = simulate_ttl_lru(cap, evs)\n    expected = [\"A\", None, \"B\", \"C\"]\n    assert out == expected, (out, expected)",
+    "usage": {
+      "model_calls": 4,
+      "input_tokens": 6860,
+      "output_tokens": 1900,
+      "total_tokens": 8760
+    }
+  }
+}

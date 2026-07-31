@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from agentloop.evaluation_v2_models import EvaluationSuite
 from agentloop.sandbox import DockerSandbox, SandboxUnavailableError
+from agentloop.telemetry import traced_verification_method
 from agentloop.verifier import VerificationResult
 
 
@@ -11,6 +12,7 @@ class EvaluationCodeVerifier:
     def __init__(self, sandbox: DockerSandbox | None = None) -> None:
         self.sandbox = sandbox or DockerSandbox()
 
+    @traced_verification_method()
     def verify(
         self,
         code: str,

@@ -1,0 +1,254 @@
+{
+  "task": {
+    "task_id": "frame-decoder-001",
+    "category": "stream-state-machine",
+    "difficulty": "hard",
+    "prompt": "实现 Python 函数 decode_frames_by_chunk(chunks, max_frame_size)。chunks 是十六进制字符串列表，按顺序表示到达的字节块；每个字符串必须只包含偶数个十六进制字符，空字符串表示空 chunk。协议中每帧由 4 字节无符号大端 payload 长度和对应 payload 组成。函数必须逐 chunk 解码，返回与 chunks 等长的二维列表：第 i 个列表包含处理第 i 个 chunk 时刚完成的所有 payload，payload 输出为小写十六进制字符串。header、payload 和多帧均可跨任意 chunk 边界；零长度帧必须在其 header 完成的 chunk 中输出空字符串。max_frame_size 为非负整数；负数、非法 hex、声明长度超过 max_frame_size、或输入结束时残留不完整 header/payload 均抛出 ValueError。不得使用全局状态、真实时间或修改输入。",
+    "evaluation_suite": {
+      "function_name": "decode_frames_by_chunk",
+      "test_cases": [
+        {
+          "args": [
+            [
+              "00",
+              "00",
+              "00",
+              "03",
+              "61",
+              "62",
+              "63",
+              "00",
+              "00",
+              "00",
+              "00",
+              "00",
+              "00",
+              "00",
+              "02",
+              "ff",
+              "00"
+            ],
+            3
+          ],
+          "expected": [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [
+              "616263"
+            ],
+            [],
+            [],
+            [],
+            [
+              ""
+            ],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [
+              "ff00"
+            ]
+          ],
+          "expected_exception": null,
+          "description": "one-byte chunks across payload, zero frame, and binary payload"
+        },
+        {
+          "args": [
+            [
+              "",
+              "00000001",
+              "",
+              "41",
+              ""
+            ],
+            1
+          ],
+          "expected": [
+            [],
+            [],
+            [],
+            [
+              "41"
+            ],
+            []
+          ],
+          "expected_exception": null,
+          "description": "empty chunks preserve output alignment"
+        },
+        {
+          "args": [
+            [
+              "00000002AB",
+              "CD"
+            ],
+            2
+          ],
+          "expected": [
+            [],
+            [
+              "abcd"
+            ]
+          ],
+          "expected_exception": null,
+          "description": "uppercase input is normalized to lowercase output"
+        },
+        {
+          "args": [
+            [
+              "00000001GG"
+            ],
+            4
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "non-hex characters are rejected"
+        },
+        {
+          "args": [
+            [
+              "0"
+            ],
+            4
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "odd-length hex chunks are rejected"
+        },
+        {
+          "args": [
+            [
+              "0000"
+            ],
+            4
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "trailing partial header is rejected"
+        },
+        {
+          "args": [
+            [
+              "000000036162"
+            ],
+            4
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "trailing partial payload is rejected"
+        },
+        {
+          "args": [
+            [
+              "00000003"
+            ],
+            2
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "declared payload larger than max is rejected"
+        },
+        {
+          "args": [
+            [],
+            -1
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "negative max frame size follows the public contract"
+        }
+      ]
+    }
+  },
+  "path": "direct",
+  "direct_code": "from typing import List\n\n\ndef decode_frames_by_chunk(chunks: List[str], max_frame_size: int) -> List[List[str]]:\n    if not isinstance(max_frame_size, int) or max_frame_size < 0:\n        raise ValueError(\"max_frame_size must be a non-negative integer\")\n\n    if chunks is None:\n        raise ValueError(\"chunks must not be None\")\n\n    # Buffer for bytes not yet processed (across chunk boundaries)\n    buf = bytearray()\n\n    out: List[List[str]] = [[] for _ in range(len(chunks))]\n\n    def append_decoded_payload(payload_bytes: bytes, idx: int):\n        out[idx].append(payload_bytes.hex())\n\n    # Process each chunk sequentially\n    for i, chunk_hex in enumerate(chunks):\n        # Decode current chunk hex string into bytes (or empty)\n        if not isinstance(chunk_hex, str):\n            raise ValueError(\"each chunk must be a hex string\")\n\n        if len(chunk_hex) % 2 != 0:\n            raise ValueError(\"hex string must contain an even number of characters\")\n\n        try:\n            if chunk_hex == \"\":\n                chunk_bytes = b\"\"\n            else:\n                chunk_bytes = bytes.fromhex(chunk_hex)\n        except ValueError as e:\n            raise ValueError(\"illegal hex\") from e\n\n        buf.extend(chunk_bytes)\n\n        # Consume as many complete frames as possible from buf\n        while True:\n            if len(buf) < 4:\n                break\n\n            payload_len = int.from_bytes(buf[0:4], byteorder=\"big\", signed=False)\n            if payload_len > max_frame_size:\n                raise ValueError(\"declared payload length exceeds max_frame_size\")\n\n            if len(buf) < 4 + payload_len:\n                break\n\n            # Extract payload\n            start = 4\n            end = 4 + payload_len\n            payload = bytes(buf[start:end])\n\n            # Remove consumed frame\n            del buf[:end]\n\n            # Zero-length payload must output empty string when header completes\n            append_decoded_payload(payload, i)\n\n    # After all chunks, ensure no incomplete header/payload remains\n    if len(buf) != 0:\n        raise ValueError(\"incomplete header/payload at end of input\")\n\n    return out",
+  "routing_suite": {
+    "function_name": "decode_frames_by_chunk",
+    "test_cases": [
+      {
+        "args": [
+          [
+            "00",
+            "0000",
+            "0268",
+            "69"
+          ],
+          8
+        ],
+        "expected": [
+          [],
+          [],
+          [],
+          [
+            "6869"
+          ]
+        ],
+        "expected_exception": null,
+        "description": "header and payload both cross chunk boundaries"
+      },
+      {
+        "args": [
+          [
+            "0000000000000001410000000242",
+            "43"
+          ],
+          8
+        ],
+        "expected": [
+          [
+            "",
+            "41"
+          ],
+          [
+            "4243"
+          ]
+        ],
+        "expected_exception": null,
+        "description": "sticky frames and zero-length frame preserve chunk attribution"
+      },
+      {
+        "args": [
+          [
+            "00000005"
+          ],
+          4
+        ],
+        "expected": null,
+        "expected_exception": "ValueError",
+        "description": "oversized frame is rejected as soon as the header completes"
+      }
+    ]
+  },
+  "routing_verification": {
+    "success": true,
+    "message": "Passed 3 V2 cases for decode_frames_by_chunk"
+  },
+  "repair_context": null,
+  "workflow_result": null,
+  "hidden_verification": {
+    "success": true,
+    "message": "Passed 9 V2 cases for decode_frames_by_chunk"
+  },
+  "result": {
+    "task_id": "frame-decoder-001",
+    "strategy": "adaptive",
+    "success": true,
+    "internal_success": true,
+    "duration_ms": 5140.636100004485,
+    "coding_rounds": 1,
+    "debate_rounds": 0,
+    "message": "Passed 9 V2 cases for decode_frames_by_chunk",
+    "code": "from typing import List\n\n\ndef decode_frames_by_chunk(chunks: List[str], max_frame_size: int) -> List[List[str]]:\n    if not isinstance(max_frame_size, int) or max_frame_size < 0:\n        raise ValueError(\"max_frame_size must be a non-negative integer\")\n\n    if chunks is None:\n        raise ValueError(\"chunks must not be None\")\n\n    # Buffer for bytes not yet processed (across chunk boundaries)\n    buf = bytearray()\n\n    out: List[List[str]] = [[] for _ in range(len(chunks))]\n\n    def append_decoded_payload(payload_bytes: bytes, idx: int):\n        out[idx].append(payload_bytes.hex())\n\n    # Process each chunk sequentially\n    for i, chunk_hex in enumerate(chunks):\n        # Decode current chunk hex string into bytes (or empty)\n        if not isinstance(chunk_hex, str):\n            raise ValueError(\"each chunk must be a hex string\")\n\n        if len(chunk_hex) % 2 != 0:\n            raise ValueError(\"hex string must contain an even number of characters\")\n\n        try:\n            if chunk_hex == \"\":\n                chunk_bytes = b\"\"\n            else:\n                chunk_bytes = bytes.fromhex(chunk_hex)\n        except ValueError as e:\n            raise ValueError(\"illegal hex\") from e\n\n        buf.extend(chunk_bytes)\n\n        # Consume as many complete frames as possible from buf\n        while True:\n            if len(buf) < 4:\n                break\n\n            payload_len = int.from_bytes(buf[0:4], byteorder=\"big\", signed=False)\n            if payload_len > max_frame_size:\n                raise ValueError(\"declared payload length exceeds max_frame_size\")\n\n            if len(buf) < 4 + payload_len:\n                break\n\n            # Extract payload\n            start = 4\n            end = 4 + payload_len\n            payload = bytes(buf[start:end])\n\n            # Remove consumed frame\n            del buf[:end]\n\n            # Zero-length payload must output empty string when header completes\n            append_decoded_payload(payload, i)\n\n    # After all chunks, ensure no incomplete header/payload remains\n    if len(buf) != 0:\n        raise ValueError(\"incomplete header/payload at end of input\")\n\n    return out",
+    "usage": {
+      "model_calls": 1,
+      "input_tokens": 255,
+      "output_tokens": 473,
+      "total_tokens": 728
+    }
+  }
+}

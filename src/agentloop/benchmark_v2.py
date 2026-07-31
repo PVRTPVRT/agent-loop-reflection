@@ -11,6 +11,7 @@ from agentloop.benchmark_models import StrategyTaskResult
 from agentloop.evaluation_v2_models import EvaluationTask
 from agentloop.models import LLMRequest
 from agentloop.parsing import extract_python_code
+from agentloop.telemetry import traced_task_method
 
 
 class DirectStrategyV2:
@@ -20,6 +21,7 @@ class DirectStrategyV2:
         self.provider = provider
         self.verifier = verifier
 
+    @traced_task_method("agentloop.strategy.task")
     def run(self, task: EvaluationTask) -> StrategyTaskResult:
         self.provider.reset()
         started = time.perf_counter()
@@ -66,6 +68,7 @@ class ObservableReflectionStrategyV2:
         self.benchmark_verifier = benchmark_verifier
         self.trace_dir = trace_dir
 
+    @traced_task_method("agentloop.strategy.task")
     def run(self, task: EvaluationTask) -> StrategyTaskResult:
         self.provider.reset()
         started = time.perf_counter()

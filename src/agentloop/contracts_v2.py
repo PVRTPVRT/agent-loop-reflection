@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ContractV2Model(BaseModel):
@@ -15,9 +15,17 @@ class ContractV2Model(BaseModel):
 
 class ParameterContractV2(ContractV2Model):
     name: str = Field(min_length=1)
-    types: list[Literal["integer", "float", "string", "boolean", "list", "null"]] = Field(
-        min_length=1
-    )
+    types: list[
+        Literal[
+            "integer",
+            "float",
+            "string",
+            "boolean",
+            "list",
+            "object",
+            "null",
+        ]
+    ] = Field(min_length=1)
     finite: bool | None = None
     items_hashable: bool | None = None
 
@@ -35,6 +43,21 @@ class TaskContractV2(ContractV2Model):
     oracle: str = Field(min_length=1)
     parameters: list[ParameterContractV2]
     exceptions: list[ExceptionRule]
+    dynamic_exceptions: list[str] = Field(default_factory=list)
+
+    @field_validator("dynamic_exceptions")
+    @classmethod
+    def validate_dynamic_exceptions(cls, exceptions: list[str]) -> list[str]:
+        if len(exceptions) != len(set(exceptions)):
+            raise ValueError("dynamic_exceptions must be unique")
+        for exception in exceptions:
+            if not exception.isidentifier() or not exception.endswith(
+                ("Error", "Exception")
+            ):
+                raise ValueError(
+                    "dynamic_exceptions must contain exception class names"
+                )
+        return exceptions
 
 
 class ContractRegistryV2(ContractV2Model):

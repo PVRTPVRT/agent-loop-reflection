@@ -1,0 +1,34 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-frame-decoder-pilot",
+  "contracts": {
+    "frame-decoder-001": {
+      "function_name": "decode_frames_by_chunk",
+      "oracle": "decode_frames_by_chunk",
+      "parameters": [
+        {
+          "name": "chunks",
+          "types": ["list"],
+          "finite": null,
+          "items_hashable": false
+        },
+        {
+          "name": "max_frame_size",
+          "types": ["integer"],
+          "finite": null,
+          "items_hashable": null
+        }
+      ],
+      "exceptions": [
+        {
+          "parameter": "max_frame_size",
+          "operator": "<",
+          "value": 0,
+          "other_parameter": null,
+          "exception": "ValueError"
+        }
+      ],
+      "dynamic_exceptions": ["ValueError"]
+    }
+  }
+}

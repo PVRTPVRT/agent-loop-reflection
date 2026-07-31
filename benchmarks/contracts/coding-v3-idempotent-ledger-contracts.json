@@ -1,0 +1,26 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-idempotent-ledger-pilot",
+  "contracts": {
+    "idempotent-ledger-001": {
+      "function_name": "process_idempotent_transfers",
+      "oracle": "process_idempotent_transfers",
+      "parameters": [
+        {
+          "name": "initial_balances",
+          "types": ["object"],
+          "finite": null,
+          "items_hashable": null
+        },
+        {
+          "name": "events",
+          "types": ["list"],
+          "finite": null,
+          "items_hashable": false
+        }
+      ],
+      "exceptions": [],
+      "dynamic_exceptions": ["ValueError"]
+    }
+  }
+}

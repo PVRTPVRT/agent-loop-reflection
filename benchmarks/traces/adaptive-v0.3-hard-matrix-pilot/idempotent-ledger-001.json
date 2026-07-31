@@ -1,0 +1,384 @@
+{
+  "task": {
+    "task_id": "idempotent-ledger-001",
+    "category": "business-state-machine",
+    "difficulty": "hard",
+    "prompt": "实现 Python 函数 process_idempotent_transfers(initial_balances, events)。initial_balances 是账户名到非负整数余额的字典。每个 event 必须且只能包含 id、from、to、amount：前三者为非空字符串，from 与 to 不同，amount 为正整数。首次出现的 id：若来源余额不足，状态为 rejected 且不改变余额；否则执行转账，必要时创建目标账户，状态为 applied。每个结果为 {id, status, from_balance, to_balance}，余额字段是该事件首次处理后的两个账户余额。重复 id 且载荷完全相同必须返回首次缓存的结果，绝不能再次执行，即使余额后来发生变化；重复 id 但 from/to/amount 任一不同必须抛出 ValueError。返回 {results: 按输入事件顺序的结果列表, balances: 最终余额字典}。缺失来源账户按余额 0 处理。非法初始余额、非法事件、冲突幂等键均抛出 ValueError。不得修改输入或使用全局状态。",
+    "evaluation_suite": {
+      "function_name": "process_idempotent_transfers",
+      "test_cases": [
+        {
+          "args": [
+            {
+              "a": 10,
+              "b": 0,
+              "c": 0
+            },
+            [
+              {
+                "id": "e1",
+                "from": "a",
+                "to": "b",
+                "amount": 7
+              },
+              {
+                "id": "e2",
+                "from": "b",
+                "to": "c",
+                "amount": 5
+              },
+              {
+                "id": "e1",
+                "from": "a",
+                "to": "b",
+                "amount": 7
+              }
+            ]
+          ],
+          "expected": {
+            "results": [
+              {
+                "id": "e1",
+                "status": "applied",
+                "from_balance": 3,
+                "to_balance": 7
+              },
+              {
+                "id": "e2",
+                "status": "applied",
+                "from_balance": 2,
+                "to_balance": 5
+              },
+              {
+                "id": "e1",
+                "status": "applied",
+                "from_balance": 3,
+                "to_balance": 7
+              }
+            ],
+            "balances": {
+              "a": 3,
+              "b": 2,
+              "c": 5
+            }
+          },
+          "expected_exception": null,
+          "description": "duplicate applied event returns cached result without reapplying"
+        },
+        {
+          "args": [
+            {
+              "a": 1
+            },
+            [
+              {
+                "id": "missing",
+                "from": "x",
+                "to": "z",
+                "amount": 1
+              }
+            ]
+          ],
+          "expected": {
+            "results": [
+              {
+                "id": "missing",
+                "status": "rejected",
+                "from_balance": 0,
+                "to_balance": 0
+              }
+            ],
+            "balances": {
+              "a": 1
+            }
+          },
+          "expected_exception": null,
+          "description": "missing source has zero balance and rejection creates no accounts"
+        },
+        {
+          "args": [
+            {
+              "a": 2
+            },
+            [
+              {
+                "id": "new-destination",
+                "from": "a",
+                "to": "z",
+                "amount": 2
+              }
+            ]
+          ],
+          "expected": {
+            "results": [
+              {
+                "id": "new-destination",
+                "status": "applied",
+                "from_balance": 0,
+                "to_balance": 2
+              }
+            ],
+            "balances": {
+              "a": 0,
+              "z": 2
+            }
+          },
+          "expected_exception": null,
+          "description": "successful transfer creates a missing destination"
+        },
+        {
+          "args": [
+            {
+              "a": 3
+            },
+            []
+          ],
+          "expected": {
+            "results": [],
+            "balances": {
+              "a": 3
+            }
+          },
+          "expected_exception": null,
+          "description": "empty event list returns an independent balance copy"
+        },
+        {
+          "args": [
+            {
+              "a": 10,
+              "b": 0,
+              "c": 0
+            },
+            [
+              {
+                "id": "same",
+                "from": "a",
+                "to": "b",
+                "amount": 2
+              },
+              {
+                "id": "same",
+                "from": "a",
+                "to": "c",
+                "amount": 2
+              }
+            ]
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "same id with a conflicting destination is rejected"
+        },
+        {
+          "args": [
+            {
+              "a": -1
+            },
+            []
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "negative initial balances are rejected"
+        },
+        {
+          "args": [
+            {
+              "a": 2,
+              "b": 0
+            },
+            [
+              {
+                "id": "zero",
+                "from": "a",
+                "to": "b",
+                "amount": 0
+              }
+            ]
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "zero transfer amount is rejected"
+        },
+        {
+          "args": [
+            {
+              "a": 2
+            },
+            [
+              {
+                "id": "self",
+                "from": "a",
+                "to": "a",
+                "amount": 1
+              }
+            ]
+          ],
+          "expected": null,
+          "expected_exception": "ValueError",
+          "description": "self transfer is rejected"
+        }
+      ]
+    }
+  },
+  "path": "direct",
+  "direct_code": "def process_idempotent_transfers(initial_balances, events):\n    # Validate initial_balances\n    if not isinstance(initial_balances, dict):\n        raise ValueError(\"initial_balances must be a dict\")\n\n    balances = {}\n    for k, v in initial_balances.items():\n        if not isinstance(k, str) or not k:\n            raise ValueError(\"account names must be non-empty strings\")\n        if not isinstance(v, int) or v < 0:\n            raise ValueError(\"initial balances must be non-negative integers\")\n        balances[k] = v\n\n    if not isinstance(events, list):\n        raise ValueError(\"events must be a list\")\n\n    id_cache = {}  # id -> {\"payload\": payload_dict, \"result\": result_dict}\n    results = []\n\n    def _validate_event(ev):\n        if not isinstance(ev, dict):\n            raise ValueError(\"each event must be a dict\")\n\n        required_keys = {\"id\", \"from\", \"to\", \"amount\"}\n        if set(ev.keys()) != required_keys:\n            raise ValueError(\"each event must contain exactly keys: id, from, to, amount\")\n\n        event_id = ev[\"id\"]\n        from_acct = ev[\"from\"]\n        to_acct = ev[\"to\"]\n        amount = ev[\"amount\"]\n\n        if not isinstance(event_id, str) or not event_id:\n            raise ValueError(\"id must be a non-empty string\")\n        if not isinstance(from_acct, str) or not from_acct:\n            raise ValueError(\"from must be a non-empty string\")\n        if not isinstance(to_acct, str) or not to_acct:\n            raise ValueError(\"to must be a non-empty string\")\n        if from_acct == to_acct:\n            raise ValueError(\"from and to must be different\")\n        if not isinstance(amount, int) or amount <= 0:\n            raise ValueError(\"amount must be a positive integer\")\n\n        return {\"id\": event_id, \"from\": from_acct, \"to\": to_acct, \"amount\": amount}\n\n    for ev in events:\n        payload = _validate_event(ev)\n        event_id = payload[\"id\"]\n\n        if event_id in id_cache:\n            cached = id_cache[event_id][\"payload\"]\n            if (\n                cached[\"from\"] != payload[\"from\"]\n                or cached[\"to\"] != payload[\"to\"]\n                or cached[\"amount\"] != payload[\"amount\"]\n            ):\n                raise ValueError(\"conflicting id payload\")\n            # Return cached result without re-executing\n            results.append(dict(id_cache[event_id][\"result\"]))\n            continue\n\n        from_acct = payload[\"from\"]\n        to_acct = payload[\"to\"]\n        amount = payload[\"amount\"]\n\n        from_balance = balances.get(from_acct, 0)\n        to_balance = balances.get(to_acct, 0)\n\n        if from_balance < amount:\n            result = {\n                \"id\": event_id,\n                \"status\": \"rejected\",\n                \"from_balance\": from_balance,\n                \"to_balance\": to_balance,\n            }\n            id_cache[event_id] = {\"payload\": payload, \"result\": result}\n            results.append(dict(result))\n        else:\n            # Apply transfer\n            from_balance_after = from_balance - amount\n            to_balance_after = to_balance + amount\n            balances[from_acct] = from_balance_after\n            balances[to_acct] = to_balance_after\n\n            result = {\n                \"id\": event_id,\n                \"status\": \"applied\",\n                \"from_balance\": from_balance_after,\n                \"to_balance\": to_balance_after,\n            }\n            id_cache[event_id] = {\"payload\": payload, \"result\": result}\n            results.append(dict(result))\n\n    return {\"results\": results, \"balances\": balances}",
+  "routing_suite": {
+    "function_name": "process_idempotent_transfers",
+    "test_cases": [
+      {
+        "args": [
+          {
+            "a": 10,
+            "b": 0
+          },
+          [
+            {
+              "id": "x",
+              "from": "a",
+              "to": "b",
+              "amount": 4
+            },
+            {
+              "id": "x",
+              "from": "a",
+              "to": "b",
+              "amount": 4
+            }
+          ]
+        ],
+        "expected": {
+          "results": [
+            {
+              "id": "x",
+              "status": "applied",
+              "from_balance": 6,
+              "to_balance": 4
+            },
+            {
+              "id": "x",
+              "status": "applied",
+              "from_balance": 6,
+              "to_balance": 4
+            }
+          ],
+          "balances": {
+            "a": 6,
+            "b": 4
+          }
+        },
+        "expected_exception": null,
+        "description": "identical duplicate is replayed from cache"
+      },
+      {
+        "args": [
+          {
+            "a": 0,
+            "b": 10,
+            "c": 0
+          },
+          [
+            {
+              "id": "x",
+              "from": "a",
+              "to": "c",
+              "amount": 5
+            },
+            {
+              "id": "fund",
+              "from": "b",
+              "to": "a",
+              "amount": 10
+            },
+            {
+              "id": "x",
+              "from": "a",
+              "to": "c",
+              "amount": 5
+            }
+          ]
+        ],
+        "expected": {
+          "results": [
+            {
+              "id": "x",
+              "status": "rejected",
+              "from_balance": 0,
+              "to_balance": 0
+            },
+            {
+              "id": "fund",
+              "status": "applied",
+              "from_balance": 0,
+              "to_balance": 10
+            },
+            {
+              "id": "x",
+              "status": "rejected",
+              "from_balance": 0,
+              "to_balance": 0
+            }
+          ],
+          "balances": {
+            "a": 10,
+            "b": 0,
+            "c": 0
+          }
+        },
+        "expected_exception": null,
+        "description": "cached rejection remains rejected after later funding"
+      },
+      {
+        "args": [
+          {
+            "a": 10,
+            "b": 0,
+            "c": 0
+          },
+          [
+            {
+              "id": "conflict",
+              "from": "a",
+              "to": "b",
+              "amount": 4
+            },
+            {
+              "id": "conflict",
+              "from": "a",
+              "to": "c",
+              "amount": 4
+            }
+          ]
+        ],
+        "expected": null,
+        "expected_exception": "ValueError",
+        "description": "same id with different payload is a contract violation"
+      }
+    ]
+  },
+  "routing_verification": {
+    "success": true,
+    "message": "Passed 3 V2 cases for process_idempotent_transfers"
+  },
+  "repair_context": null,
+  "workflow_result": null,
+  "hidden_verification": {
+    "success": true,
+    "message": "Passed 8 V2 cases for process_idempotent_transfers"
+  },
+  "result": {
+    "task_id": "idempotent-ledger-001",
+    "strategy": "adaptive",
+    "success": true,
+    "internal_success": true,
+    "duration_ms": 23624.780799997097,
+    "coding_rounds": 1,
+    "debate_rounds": 0,
+    "message": "Passed 8 V2 cases for process_idempotent_transfers",
+    "code": "def process_idempotent_transfers(initial_balances, events):\n    # Validate initial_balances\n    if not isinstance(initial_balances, dict):\n        raise ValueError(\"initial_balances must be a dict\")\n\n    balances = {}\n    for k, v in initial_balances.items():\n        if not isinstance(k, str) or not k:\n            raise ValueError(\"account names must be non-empty strings\")\n        if not isinstance(v, int) or v < 0:\n            raise ValueError(\"initial balances must be non-negative integers\")\n        balances[k] = v\n\n    if not isinstance(events, list):\n        raise ValueError(\"events must be a list\")\n\n    id_cache = {}  # id -> {\"payload\": payload_dict, \"result\": result_dict}\n    results = []\n\n    def _validate_event(ev):\n        if not isinstance(ev, dict):\n            raise ValueError(\"each event must be a dict\")\n\n        required_keys = {\"id\", \"from\", \"to\", \"amount\"}\n        if set(ev.keys()) != required_keys:\n            raise ValueError(\"each event must contain exactly keys: id, from, to, amount\")\n\n        event_id = ev[\"id\"]\n        from_acct = ev[\"from\"]\n        to_acct = ev[\"to\"]\n        amount = ev[\"amount\"]\n\n        if not isinstance(event_id, str) or not event_id:\n            raise ValueError(\"id must be a non-empty string\")\n        if not isinstance(from_acct, str) or not from_acct:\n            raise ValueError(\"from must be a non-empty string\")\n        if not isinstance(to_acct, str) or not to_acct:\n            raise ValueError(\"to must be a non-empty string\")\n        if from_acct == to_acct:\n            raise ValueError(\"from and to must be different\")\n        if not isinstance(amount, int) or amount <= 0:\n            raise ValueError(\"amount must be a positive integer\")\n\n        return {\"id\": event_id, \"from\": from_acct, \"to\": to_acct, \"amount\": amount}\n\n    for ev in events:\n        payload = _validate_event(ev)\n        event_id = payload[\"id\"]\n\n        if event_id in id_cache:\n            cached = id_cache[event_id][\"payload\"]\n            if (\n                cached[\"from\"] != payload[\"from\"]\n                or cached[\"to\"] != payload[\"to\"]\n                or cached[\"amount\"] != payload[\"amount\"]\n            ):\n                raise ValueError(\"conflicting id payload\")\n            # Return cached result without re-executing\n            results.append(dict(id_cache[event_id][\"result\"]))\n            continue\n\n        from_acct = payload[\"from\"]\n        to_acct = payload[\"to\"]\n        amount = payload[\"amount\"]\n\n        from_balance = balances.get(from_acct, 0)\n        to_balance = balances.get(to_acct, 0)\n\n        if from_balance < amount:\n            result = {\n                \"id\": event_id,\n                \"status\": \"rejected\",\n                \"from_balance\": from_balance,\n                \"to_balance\": to_balance,\n            }\n            id_cache[event_id] = {\"payload\": payload, \"result\": result}\n            results.append(dict(result))\n        else:\n            # Apply transfer\n            from_balance_after = from_balance - amount\n            to_balance_after = to_balance + amount\n            balances[from_acct] = from_balance_after\n            balances[to_acct] = to_balance_after\n\n            result = {\n                \"id\": event_id,\n                \"status\": \"applied\",\n                \"from_balance\": from_balance_after,\n                \"to_balance\": to_balance_after,\n            }\n            id_cache[event_id] = {\"payload\": payload, \"result\": result}\n            results.append(dict(result))\n\n    return {\"results\": results, \"balances\": balances}",
+    "usage": {
+      "model_calls": 1,
+      "input_tokens": 281,
+      "output_tokens": 789,
+      "total_tokens": 1070
+    }
+  }
+}

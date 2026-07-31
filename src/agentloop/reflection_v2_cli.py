@@ -20,6 +20,7 @@ from agentloop.evaluation_verifier import EvaluationCodeVerifier
 from agentloop.evaluation_workflow import EvaluationReflectionWorkflow
 from agentloop.managed_sandbox_v2 import ManagedDockerSandboxV2
 from agentloop.resilient_benchmark import ResilientBenchmarkRunner
+from agentloop.telemetry import TelemetryConfigurationError, telemetry_session
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -99,11 +100,16 @@ def main(argv: list[str] | None = None) -> int:
         benchmark_verifier=verifier,
         trace_dir=args.trace_dir,
     )
-    report = ResilientBenchmarkRunner().run(
-        dataset,
-        [reflection],
-        checkpoint_path=args.output,
-    )
+    try:
+        with telemetry_session():
+            report = ResilientBenchmarkRunner().run(
+                dataset,
+                [reflection],
+                checkpoint_path=args.output,
+            )
+    except TelemetryConfigurationError as exc:
+        print(f"Telemetry configuration error: {exc}", file=sys.stderr)
+        return 2
     aggregate = report.aggregates[0]
     print(
         f"reflection: {aggregate.passed_tasks}/{aggregate.total_tasks}, "

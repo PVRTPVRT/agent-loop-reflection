@@ -1,0 +1,68 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-idempotent-ledger-routing",
+  "description": "Pre-registered public routing cases for idempotent transfer semantics.",
+  "tasks": [
+    {
+      "task_id": "idempotent-ledger-001",
+      "category": "business-state-machine",
+      "difficulty": "hard",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "process_idempotent_transfers",
+        "test_cases": [
+          {
+            "args": [
+              {"a": 10, "b": 0},
+              [
+                {"id": "x", "from": "a", "to": "b", "amount": 4},
+                {"id": "x", "from": "a", "to": "b", "amount": 4}
+              ]
+            ],
+            "expected": {
+              "results": [
+                {"id": "x", "status": "applied", "from_balance": 6, "to_balance": 4},
+                {"id": "x", "status": "applied", "from_balance": 6, "to_balance": 4}
+              ],
+              "balances": {"a": 6, "b": 4}
+            },
+            "expected_exception": null,
+            "description": "identical duplicate is replayed from cache"
+          },
+          {
+            "args": [
+              {"a": 0, "b": 10, "c": 0},
+              [
+                {"id": "x", "from": "a", "to": "c", "amount": 5},
+                {"id": "fund", "from": "b", "to": "a", "amount": 10},
+                {"id": "x", "from": "a", "to": "c", "amount": 5}
+              ]
+            ],
+            "expected": {
+              "results": [
+                {"id": "x", "status": "rejected", "from_balance": 0, "to_balance": 0},
+                {"id": "fund", "status": "applied", "from_balance": 0, "to_balance": 10},
+                {"id": "x", "status": "rejected", "from_balance": 0, "to_balance": 0}
+              ],
+              "balances": {"a": 10, "b": 0, "c": 0}
+            },
+            "expected_exception": null,
+            "description": "cached rejection remains rejected after later funding"
+          },
+          {
+            "args": [
+              {"a": 10, "b": 0, "c": 0},
+              [
+                {"id": "conflict", "from": "a", "to": "b", "amount": 4},
+                {"id": "conflict", "from": "a", "to": "c", "amount": 4}
+              ]
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "same id with different payload is a contract violation"
+          }
+        ]
+      }
+    }
+  ]
+}

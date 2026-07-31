@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agentloop.evaluation_v2_models import EvaluationSuite, EvaluationTask
 from agentloop.models import AgentEvent
+from agentloop.telemetry import traced_task_method
 
 
 class EvaluationWorkflowResult(BaseModel):
@@ -39,6 +40,7 @@ class EvaluationReflectionWorkflow:
         self.max_debate_rounds = max_debate_rounds
         self.max_coding_rounds = max_coding_rounds
 
+    @traced_task_method("agentloop.reflection.workflow")
     def run(self, task: EvaluationTask) -> EvaluationWorkflowResult:
         events = []
         suite = self.tester.create_suite(task)

@@ -5,6 +5,38 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-07-31
+
+### Added
+
+- A three-task hard benchmark matrix covering TTL/LRU state, chunked frame decoding,
+  and idempotent ledger processing.
+- Versioned public contracts, routing suites, trusted fixtures, data fingerprints, and
+  experiment-lineage tests for the v0.3 benchmark.
+- Repair-attempt history so later Critic and Coder rounds receive prior patches and their
+  latest verifier failures.
+- Optional vendor-neutral OpenTelemetry tracing with a Phoenix-compatible OTLP/HTTP
+  default and an explicit observability dependency extra.
+- Reproducible local Phoenix configuration with a pinned image digest, persistent storage,
+  health checks, and Windows start/stop scripts.
+
+### Changed
+
+- Public documentation now separates natural Adaptive experiments, recorded-failure
+  replay, and prompt-only counter-evidence.
+- Portfolio evidence now reports the natural 2/3 hard-matrix result instead of presenting
+  a repair replay as a general success-rate claim.
+- The package version and release documentation are aligned at v0.3.0.
+
+### Fixed
+
+- Preserve every failed repair candidate and verifier message across bounded retries
+  instead of exposing only the latest candidate.
+
+### Security
+
+- OpenTelemetry spans deliberately exclude prompts, generated code, test arguments,
+  verifier messages, and API credentials.
 ## [0.2.0] - 2026-07-28
 
 ### Added

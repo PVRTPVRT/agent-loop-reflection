@@ -54,6 +54,14 @@ def test_openai_provider_uses_responses_api_and_maps_usage() -> None:
     assert result.usage.cached_input_tokens == 4
 
 
+def test_openai_provider_defaults_to_validated_low_cost_model(monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+
+    provider = OpenAIResponsesProvider(client=SimpleNamespace(responses=StubResponses()))
+
+    assert provider.default_model == "gpt-5.4-nano"
+
+
 def test_fake_provider_is_deterministic_and_records_requests() -> None:
     provider = FakeLLMProvider(["first", "second"])
     request = LLMRequest(user_prompt="hello")

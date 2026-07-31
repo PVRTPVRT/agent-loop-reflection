@@ -39,6 +39,8 @@ def _matches_type(value: Any, type_name: str) -> bool:
         return isinstance(value, bool)
     if type_name == "list":
         return isinstance(value, list)
+    if type_name == "object":
+        return isinstance(value, dict)
     return value is None
 
 
@@ -94,20 +96,34 @@ def validate_suite(
             args_by_name[parameter.name] = value
 
         required_exception = _matching_exception(args_by_name, contract.exceptions)
-        if case.expected_exception != required_exception:
-            raise SuiteContractError(
-                f"case {index} expected_exception must be "
-                f"{required_exception!r}, got {case.expected_exception!r}"
-            )
         if required_exception is not None:
+            if case.expected_exception != required_exception:
+                raise SuiteContractError(
+                    f"case {index} expected_exception must be "
+                    f"{required_exception!r}, got {case.expected_exception!r}"
+                )
             continue
 
         try:
             oracle_value = oracle(*case.args)
         except Exception as exc:
+            oracle_exception = type(exc).__name__
+            if oracle_exception not in contract.dynamic_exceptions:
+                raise SuiteContractError(
+                    f"trusted oracle unexpectedly raised {oracle_exception}: {exc}"
+                ) from exc
+            if case.expected_exception != oracle_exception:
+                raise SuiteContractError(
+                    f"case {index} expected_exception must be "
+                    f"{oracle_exception!r}, got {case.expected_exception!r}"
+                ) from exc
+            continue
+
+        if case.expected_exception is not None:
             raise SuiteContractError(
-                f"trusted oracle unexpectedly raised {type(exc).__name__}: {exc}"
-            ) from exc
+                f"case {index} expected_exception must be None, "
+                f"got {case.expected_exception!r}"
+            )
         if case.expected != oracle_value:
             raise SuiteContractError(
                 f"case {index} expected {case.expected!r}; trusted outcome is {oracle_value!r}"

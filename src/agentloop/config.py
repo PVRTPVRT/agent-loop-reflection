@@ -26,7 +26,7 @@ def _positive_int(name: str, default: int) -> int:
 @dataclass(frozen=True, slots=True)
 class AppSettings:
     openai_api_key: str | None
-    model: str = "gpt-5.6-luna"
+    model: str = "gpt-5.4-nano"
     max_debate_rounds: int = 2
     max_coding_rounds: int = 3
 
@@ -34,7 +34,7 @@ class AppSettings:
     def from_env(cls) -> AppSettings:
         return cls(
             openai_api_key=os.environ.get("OPENAI_API_KEY"),
-            model=os.environ.get("OPENAI_MODEL", "gpt-5.6-luna"),
+            model=os.environ.get("OPENAI_MODEL", "gpt-5.4-nano"),
             max_debate_rounds=_positive_int("MAX_DEBATE_ROUNDS", 2),
             max_coding_rounds=_positive_int("MAX_CODING_ROUNDS", 3),
         )

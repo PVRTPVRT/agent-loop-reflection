@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "coding-v3-frame-decoder-routing",
+  "description": "Pre-registered public routing cases for the chunk-aware frame decoder.",
+  "tasks": [
+    {
+      "task_id": "frame-decoder-001",
+      "category": "stream-state-machine",
+      "difficulty": "hard",
+      "prompt": "Public routing suite",
+      "evaluation_suite": {
+        "function_name": "decode_frames_by_chunk",
+        "test_cases": [
+          {
+            "args": [
+              ["00", "0000", "0268", "69"],
+              8
+            ],
+            "expected": [[], [], [], ["6869"]],
+            "expected_exception": null,
+            "description": "header and payload both cross chunk boundaries"
+          },
+          {
+            "args": [
+              ["0000000000000001410000000242", "43"],
+              8
+            ],
+            "expected": [["", "41"], ["4243"]],
+            "expected_exception": null,
+            "description": "sticky frames and zero-length frame preserve chunk attribution"
+          },
+          {
+            "args": [
+              ["00000005"],
+              4
+            ],
+            "expected": null,
+            "expected_exception": "ValueError",
+            "description": "oversized frame is rejected as soon as the header completes"
+          }
+        ]
+      }
+    }
+  ]
+}
