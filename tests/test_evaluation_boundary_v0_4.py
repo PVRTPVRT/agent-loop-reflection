@@ -98,7 +98,11 @@ def test_unsupported_artifact_spec_pair_fails_explicitly() -> None:
     with pytest.raises(UnsupportedEvaluationBoundaryError, match="repository_patch"):
         verify_artifact(
             LegacyVerifier(),
-            RepositoryPatchArtifact(patch="--- a/app.py\n+++ b/app.py"),
+            RepositoryPatchArtifact(
+                repository_id="sample-repo",
+                base_revision="abc123",
+                patch="--- a/app.py\n+++ b/app.py",
+            ),
             FunctionCaseSpec(suite=routing_suite()),
         )
 
@@ -163,6 +167,7 @@ def test_repair_context_can_carry_future_repository_evidence() -> None:
     context = RepairContext(
         task_id="repo-001",
         candidate_artifact=RepositoryPatchArtifact(
+            repository_id="sample-repo",
             patch="--- a/app.py\n+++ b/app.py",
             base_revision="abc123",
         ),

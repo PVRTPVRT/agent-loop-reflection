@@ -26,6 +26,12 @@ from agentloop.managed_sandbox_v2 import ManagedDockerSandboxV2
 from agentloop.repair_replay_strategy_v2 import RepairReplayStrategyV2
 from agentloop.repair_v2 import RepairContext
 from agentloop.repair_workflow_v2 import EvidenceDrivenRepairWorkflow
+from agentloop.repository_verifier import (
+    RepositoryFixture,
+    RepositoryFixtureRegistry,
+    RepositoryWorkspaceVerifier,
+    repository_fingerprint,
+)
 from agentloop.routing_suites import RoutingSuiteRegistry
 from agentloop.suite_normalization import (
     NormalizedSuite,
@@ -48,12 +54,16 @@ __all__ = [
     "NormalizedSuite",
     "RepairContext",
     "RepairReplayStrategyV2",
+    "RepositoryFixture",
+    "RepositoryFixtureRegistry",
     "RepositoryPatchArtifact",
+    "RepositoryWorkspaceVerifier",
     "RoutingSuiteRegistry",
     "SourceCodeArtifact",
     "TaskContractV2",
     "TestCommandSpec",
     "UnsupportedEvaluationBoundaryError",
     "normalize_suite",
+    "repository_fingerprint",
     "verify_artifact",
 ]

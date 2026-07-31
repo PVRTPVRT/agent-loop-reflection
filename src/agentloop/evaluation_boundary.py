@@ -32,8 +32,19 @@ class SourceCodeArtifact(EvaluationBoundaryModel):
 
 class RepositoryPatchArtifact(EvaluationBoundaryModel):
     kind: Literal["repository_patch"] = "repository_patch"
-    patch: str = Field(min_length=1)
-    base_revision: str | None = None
+    repository_id: str = Field(
+        min_length=1,
+        pattern=r"^[a-z0-9][a-z0-9._-]*$",
+    )
+    base_revision: str = Field(min_length=1)
+    patch: str = Field(min_length=1, max_length=262_144)
+
+    @field_validator("repository_id", "base_revision")
+    @classmethod
+    def require_repository_metadata(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("repository metadata must not be blank")
+        return value
 
     @field_validator("patch")
     @classmethod
