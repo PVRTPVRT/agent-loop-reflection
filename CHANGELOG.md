@@ -17,6 +17,16 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Adaptive, evidence-driven repair, and recorded-failure replay now pass typed artifacts
   and evaluation specifications while retaining the v0.3 constructor interface.
+- The installed `agentloop` command and `python -m agentloop` now use the single V2
+  Direct/Reflection/Adaptive dispatcher.
+- Deterministic and Docker test stages no longer execute Managed Docker tests twice.
+
+### Removed
+
+- Twenty production-unreachable v0.1 portability, contract, comparison, and transitional
+  CLI modules; their released history remains available from the `v0.1.0` and `v0.2.0`
+  tags.
+- Ten test files that exclusively exercised those removed historical modules.
 
 ### Security
 

@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agentloop = "agentloop.cli:main"
+agentloop = "agentloop.main_v2:main"
 
 [project.optional-dependencies]
 dev = [

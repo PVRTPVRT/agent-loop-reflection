@@ -75,6 +75,14 @@ Copy-Item .env.example .env
 .\scripts\run-v2.cmd adaptive
 ```
 
+安装为可编辑包后，也可以使用同一个 V2 入口：
+
+```powershell
+agentloop direct
+agentloop reflection
+agentloop adaptive
+```
+
 v0.3 困难任务矩阵与失败重放：
 
 ```powershell
@@ -95,8 +103,9 @@ v0.3 困难任务矩阵与失败重放：
 
 ```text
 Ruff: passed
-regular/property/lineage/telemetry tests: 111 passed
+deterministic non-Docker tests: 104 passed
 Docker integration tests: 5 passed
+unique test functions in the release gate: 109
 ```
 
 ## 已验证结果

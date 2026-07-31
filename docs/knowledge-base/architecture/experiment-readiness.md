@@ -22,11 +22,10 @@ Use adaptive routing:
 The repeated V2 results show that always-on Reflection is not economical for
 easy tasks and reduces end-to-end availability through additional API calls.
 
-## Known legacy limitation
+## Known infrastructure debt
 
-The original `DockerSandboxV2` integration test exercises the pre-managed
-`docker run --rm` implementation, which can leave a container behind when the
-Docker client is interrupted on Windows. Production V2 experiment entry points
-use `ManagedDockerSandboxV2`; routine regression commands should exclude the
-legacy integration test until the old module is removed during repository
-cleanup.
+Docker preparation, the function-case harness, and managed container cleanup are still
+split across `sandbox.py`, `sandbox_v2.py`, and `managed_sandbox_v2.py`. Production V2
+entry points use `ManagedDockerSandboxV2`, but the layering is wider than necessary.
+The repository executor should consolidate both function and repository evaluation onto
+one named-container lifecycle rather than adding a fourth sandbox implementation.

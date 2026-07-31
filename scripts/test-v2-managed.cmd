@@ -8,6 +8,7 @@ if errorlevel 1 goto :failed
 
 "%PROJECT_ROOT%\.venv\Scripts\python.exe" -m pytest -q ^
     --ignore=tests/test_sandbox.py ^
+    --ignore=tests/test_managed_sandbox_v2.py ^
     --ignore=tests/test_docker_v2_integration.py
 if errorlevel 1 goto :failed
 
