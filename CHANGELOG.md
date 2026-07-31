@@ -26,6 +26,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Function cases and repository test commands now share one named-container execution
   lifecycle.
 - Repository artifacts must identify an exact trusted fixture revision.
+- `EvaluationCodeVerifier` now defaults to the Managed sandbox instead of an incompatible
+  legacy runtime.
 
 ### Removed
 
@@ -33,6 +35,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   CLI modules; their released history remains available from the `v0.1.0` and `v0.2.0`
   tags.
 - Ten test files that exclusively exercised those removed historical modules.
+- The interrupt-prone `docker run --rm` execution path and its excluded legacy test.
 
 ### Security
 

@@ -54,5 +54,5 @@ trusted fixture + content fingerprint
 - The first implementation supports text patches and commands available in the pinned
   Python sandbox image. Binary patches, symlinks, dependency installation, and networked
   builds deliberately fail closed.
-- The older function harness still lives in `sandbox_v2.py`; a later internal cleanup can
-  move it into the shared Managed module without changing the repository boundary.
+- Docker runtime preparation, function harness construction, and Managed lifecycle are
+  separate responsibilities; the old `docker run --rm` execution path is removed.

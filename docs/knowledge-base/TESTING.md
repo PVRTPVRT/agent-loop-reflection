@@ -9,7 +9,7 @@
 该命令：
 
 1. 运行 Ruff；
-2. 运行 121 项不依赖 Docker 的确定性测试；
+2. 运行 122 项不依赖 Docker 的确定性测试；
 3. 单独运行 7 项函数、仓库与 Managed 清理 Docker 测试；
 4. 不调用 OpenAI API。
 
@@ -22,14 +22,14 @@
 - `tests/test_docker_v2_integration.py`
 - `tests/test_repository_docker_integration_v0_4.py`
 
-旧 `tests/test_sandbox.py` 和未跟踪的 `scripts/test-v2.cmd` 不属于发布门禁。
-函数与仓库验证已经共用一个 Managed 命名容器生命周期，没有新增第四个沙箱。
-旧 `sandbox.py` / `sandbox_v2.py` 的剩余 harness 合并属于后续内部瘦身，不影响当前边界。
+旧未跟踪的 `scripts/test-v2.cmd` 不属于发布门禁。旧 `docker run --rm` 执行路径及
+其专属测试已经删除；`sandbox.py` 只准备 Docker runtime，`sandbox_v2.py` 只构建
+函数 harness，所有执行统一由 Managed 命名容器生命周期负责。
 
 ## 当前门槛
 
 - Ruff 必须通过；
-- 121 项确定性测试必须全部通过；
+- 122 项确定性测试必须全部通过；
 - 7 项 Docker 集成测试必须全部通过；
 - Managed Docker 成功路径必须清理容器；
 - Managed Docker 超时路径必须清理容器；

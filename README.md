@@ -104,9 +104,9 @@ v0.3 困难任务矩阵与失败重放：
 
 ```text
 Ruff: passed
-deterministic non-Docker tests: 121 passed
+deterministic non-Docker tests: 122 passed
 Docker integration tests: 7 passed
-unique test functions in the release gate: 128
+unique test functions in the release gate: 129
 ```
 
 ## 已验证结果

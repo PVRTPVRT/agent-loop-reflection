@@ -22,10 +22,9 @@ Use adaptive routing:
 The repeated V2 results show that always-on Reflection is not economical for
 easy tasks and reduces end-to-end availability through additional API calls.
 
-## Known infrastructure debt
+## Current execution boundary
 
-Docker preparation, the function-case harness, and managed container cleanup are still
-split across `sandbox.py`, `sandbox_v2.py`, and `managed_sandbox_v2.py`. Production V2
-entry points use `ManagedDockerSandboxV2`, but the layering is wider than necessary.
-The repository executor should consolidate both function and repository evaluation onto
-one named-container lifecycle rather than adding a fourth sandbox implementation.
+Docker responsibilities are now narrow: `sandbox.py` prepares the runtime,
+`sandbox_v2.py` builds and parses the function harness, and
+`managed_sandbox_v2.py` owns the only container lifecycle used by both function and
+repository evaluation. The interrupt-prone `docker run --rm` path has been removed.
