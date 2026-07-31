@@ -17,6 +17,7 @@ from agentloop.evaluation_boundary import (
 )
 from agentloop.evaluation_v2_models import EvaluationCase, EvaluationSuite
 from agentloop.evaluation_verifier import EvaluationCodeVerifier
+from agentloop.managed_sandbox_v2 import ManagedDockerSandboxV2
 from agentloop.repair_v2 import RepairContext
 from agentloop.sandbox import ExecutionResult
 from agentloop.verifier import VerificationResult
@@ -60,6 +61,12 @@ class PassingSandbox:
         assert test_suite["function_name"] == "add"
         return ExecutionResult(success=True, message="sandbox passed")
 
+
+def test_evaluation_verifier_defaults_to_managed_sandbox() -> None:
+    assert isinstance(
+        EvaluationCodeVerifier().sandbox,
+        ManagedDockerSandboxV2,
+    )
 
 def test_legacy_verifier_is_adapted_at_the_boundary() -> None:
     verifier = LegacyVerifier()
