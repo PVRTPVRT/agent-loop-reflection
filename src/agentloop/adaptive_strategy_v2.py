@@ -8,6 +8,11 @@ from pathlib import Path
 
 from agentloop.benchmark import MeteredLLMProvider
 from agentloop.benchmark_models import StrategyTaskResult
+from agentloop.evaluation_boundary import (
+    function_case_spec,
+    source_code_artifact,
+    verify_artifact,
+)
 from agentloop.evaluation_v2_models import EvaluationTask
 from agentloop.models import LLMRequest
 from agentloop.parsing import extract_python_code
@@ -39,6 +44,7 @@ class AdaptiveStrategyV2:
         self.provider.reset()
         started = time.perf_counter()
         routing_suite = self.routing_suites.require(task.task_id)
+        routing_spec = function_case_spec(routing_suite)
         direct_response = self.provider.generate(
             LLMRequest(
                 system_prompt=(
@@ -54,7 +60,10 @@ class AdaptiveStrategyV2:
             )
         )
         direct_code = extract_python_code(direct_response.text)
-        routing_verification = self.verifier.verify(direct_code, routing_suite)
+        direct_artifact = source_code_artifact(direct_code)
+        routing_verification = verify_artifact(
+            self.verifier, direct_artifact, routing_spec
+        )
 
         workflow_result = None
         repair_context = None
@@ -68,8 +77,8 @@ class AdaptiveStrategyV2:
             path = "reflection"
             repair_context = RepairContext(
                 task_id=task.task_id,
-                failed_code=direct_code,
-                routing_suite=routing_suite,
+                candidate_artifact=direct_artifact,
+                evaluation_spec=routing_spec,
                 verification_message=routing_verification.message,
             )
             workflow_result = self.reflection_workflow.run(
@@ -81,9 +90,13 @@ class AdaptiveStrategyV2:
             coding_rounds = 1 + workflow_result.coding_rounds
             debate_rounds = workflow_result.debate_rounds
 
-        hidden_verification = (
-            self.verifier.verify(final_code, task.evaluation_suite) if final_code else None
-        )
+        hidden_verification = None
+        if final_code:
+            hidden_verification = verify_artifact(
+                self.verifier,
+                source_code_artifact(final_code),
+                function_case_spec(task.evaluation_suite),
+            )
         final_success = bool(
             internal_success
             and hidden_verification
@@ -104,8 +117,10 @@ class AdaptiveStrategyV2:
         self._write_trace(
             task=task,
             path=path,
+            candidate_artifact=direct_artifact,
             direct_code=direct_code,
             routing_suite=routing_suite,
+            routing_spec=routing_spec,
             routing_verification=routing_verification,
             repair_context=repair_context,
             workflow_result=workflow_result,

@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from agentloop.evaluation_boundary import (
+    require_function_suite,
+    require_source_code,
+    source_code_artifact,
+    verify_artifact,
+)
 from agentloop.evaluation_v2_models import EvaluationTask
 from agentloop.evaluation_workflow import EvaluationWorkflowResult
 from agentloop.lean_evaluation import LeanNormalizedEvaluationWorkflow
@@ -27,6 +33,8 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
                 f"Repair context task {repair_context.task_id!r} does not match "
                 f"{task.task_id!r}"
             )
+        routing_suite = require_function_suite(repair_context.evaluation_spec)
+        initial_code = require_source_code(repair_context.candidate_artifact)
 
         events = [
             AgentEvent(
@@ -37,7 +45,7 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
             )
         ]
         feedback = repair_context.verification_message
-        last_code = repair_context.failed_code
+        last_code = initial_code
         attempts = repair_context.attempts
         for coding_round in range(1, self.max_coding_rounds + 1):
             round_context = (
@@ -45,7 +53,7 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
                 if coding_round == 1
                 else repair_context.model_copy(
                     update={
-                        "failed_code": last_code,
+                        "candidate_artifact": source_code_artifact(last_code),
                         "verification_message": feedback,
                         "attempts": attempts,
                     }
@@ -80,9 +88,10 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
                     },
                 )
             )
-            verification = self.verifier.verify(
-                last_code,
-                repair_context.routing_suite,
+            verification = verify_artifact(
+                self.verifier,
+                source_code_artifact(last_code),
+                repair_context.evaluation_spec,
             )
             events.append(
                 AgentEvent(
@@ -100,7 +109,7 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
                     task_id=task.task_id,
                     success=True,
                     code=last_code,
-                    test_suite=repair_context.routing_suite,
+                    test_suite=routing_suite,
                     debate_rounds=coding_round,
                     coding_rounds=coding_round,
                     final_message=verification.message,
@@ -127,7 +136,7 @@ class EvidenceDrivenRepairWorkflow(LeanNormalizedEvaluationWorkflow):
             task_id=task.task_id,
             success=False,
             code=last_code,
-            test_suite=repair_context.routing_suite,
+            test_suite=routing_suite,
             debate_rounds=self.max_coding_rounds,
             coding_rounds=self.max_coding_rounds,
             final_message=feedback,

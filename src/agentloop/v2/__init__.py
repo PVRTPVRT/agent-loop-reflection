@@ -5,6 +5,17 @@ from agentloop.contracts_v2 import (
     ContractRegistryV2,
     TaskContractV2,
 )
+from agentloop.evaluation_boundary import (
+    ArtifactVerifier,
+    CandidateArtifact,
+    EvaluationSpec,
+    FunctionCaseSpec,
+    RepositoryPatchArtifact,
+    SourceCodeArtifact,
+    TestCommandSpec,
+    UnsupportedEvaluationBoundaryError,
+    verify_artifact,
+)
 from agentloop.evaluation_v2_models import (
     EvaluationCase,
     EvaluationDataset,
@@ -23,17 +34,26 @@ from agentloop.suite_normalization import (
 
 __all__ = [
     "AdaptiveStrategyV2",
+    "ArtifactVerifier",
+    "CandidateArtifact",
     "ContractRegistryV2",
     "EvaluationCase",
     "EvaluationDataset",
+    "EvaluationSpec",
     "EvaluationSuite",
     "EvaluationTask",
     "EvidenceDrivenRepairWorkflow",
+    "FunctionCaseSpec",
     "ManagedDockerSandboxV2",
     "NormalizedSuite",
     "RepairContext",
     "RepairReplayStrategyV2",
+    "RepositoryPatchArtifact",
     "RoutingSuiteRegistry",
+    "SourceCodeArtifact",
     "TaskContractV2",
+    "TestCommandSpec",
+    "UnsupportedEvaluationBoundaryError",
     "normalize_suite",
+    "verify_artifact",
 ]

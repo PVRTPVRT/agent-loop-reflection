@@ -18,6 +18,14 @@ class CodeVerifier:
             message="passed" if success else "failed route",
         )
 
+class GenericCodeVerifier:
+    def verify_artifact(self, artifact, spec):
+        success = "return a + b" in artifact.content
+        return VerificationResult(
+            success=success,
+            message="passed" if success else "failed route",
+        )
+
 
 class ForbiddenWorkflow:
     def run(self, task):
@@ -70,6 +78,25 @@ def test_route_success_returns_direct_without_reflection(tmp_path) -> None:
     assert result.usage.model_calls == 1
     trace = json.loads((tmp_path / "add-001.json").read_text(encoding="utf-8"))
     assert trace["path"] == "direct"
+
+def test_route_success_uses_generic_artifact_verifier(tmp_path) -> None:
+    meter = MeteredLLMProvider(FakeLLMProvider(["def add(a, b):\n    return a + b"]))
+    strategy = AdaptiveStrategyV2(
+        provider=meter,
+        verifier=GenericCodeVerifier(),
+        reflection_workflow=ForbiddenWorkflow(),
+        routing_suites=RoutingSuiteRegistry.load(),
+        trace_dir=tmp_path,
+    )
+
+    result = strategy.run(task())
+
+    assert result.success is True
+    trace = json.loads(
+        (tmp_path / "add-001.json").read_text(encoding="utf-8")
+    )
+    assert trace["candidate_artifact"]["kind"] == "source_code"
+    assert trace["routing_spec"]["kind"] == "function_cases"
 
 
 def test_route_failure_falls_back_to_reflection(tmp_path) -> None:

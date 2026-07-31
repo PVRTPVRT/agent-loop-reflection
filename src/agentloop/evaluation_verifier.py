@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from agentloop.evaluation_boundary import (
+    CandidateArtifact,
+    EvaluationSpec,
+    require_function_suite,
+    require_source_code,
+)
 from agentloop.evaluation_v2_models import EvaluationSuite
 from agentloop.sandbox import DockerSandbox, SandboxUnavailableError
 from agentloop.telemetry import traced_verification_method
@@ -23,3 +29,14 @@ class EvaluationCodeVerifier:
         except SandboxUnavailableError as exc:
             return VerificationResult(success=False, message=str(exc))
         return VerificationResult(success=result.success, message=result.message)
+
+    def verify_artifact(
+        self,
+        artifact: CandidateArtifact,
+        spec: EvaluationSpec,
+    ) -> VerificationResult:
+        """Bridge the generic boundary to the existing function-case sandbox."""
+        return self.verify(
+            require_source_code(artifact),
+            require_function_suite(spec),
+        )
