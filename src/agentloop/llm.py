@@ -31,7 +31,7 @@ class OpenAIResponsesProvider:
         default_model: str | None = None,
         client: OpenAI | None = None,
     ) -> None:
-        self.default_model = default_model or os.environ.get("OPENAI_MODEL") or "gpt-5.6-luna"
+        self.default_model = default_model or os.environ.get("OPENAI_MODEL") or "gpt-5.4-nano"
         self._client = client or OpenAI(api_key=api_key or os.environ.get("OPENAI_API_KEY"))
 
     def generate(self, request: LLMRequest) -> LLMResponse:

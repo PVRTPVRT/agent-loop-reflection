@@ -17,6 +17,14 @@ def test_settings_load_from_environment(monkeypatch) -> None:
     assert settings.max_coding_rounds == 5
 
 
+def test_settings_default_to_validated_low_cost_model(monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+
+    settings = AppSettings.from_env()
+
+    assert settings.model == "gpt-5.4-nano"
+
+
 def test_settings_reject_invalid_round_limit(monkeypatch) -> None:
     monkeypatch.setenv("MAX_DEBATE_ROUNDS", "0")
     with pytest.raises(ConfigurationError, match="大于 0"):
