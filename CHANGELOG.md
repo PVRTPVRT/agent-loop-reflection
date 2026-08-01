@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-01
+
 ### Added
 
 - A typed artifact/evaluation boundary for source code, repository patches, function
@@ -15,6 +17,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Trusted repository fixtures, content fingerprints, disposable patch workspaces, and a
   deterministic repair/non-fix mutation corpus.
 - End-to-end repository patch verification through tokenized tests in Managed Docker.
+- A versioned zero-API repository mutation matrix covering an easy calculator repair and
+  a hard chunked frame-decoder boundary bug, with committed lineage evidence.
 
 ### Changed
 
@@ -26,6 +30,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Function cases and repository test commands now share one named-container execution
   lifecycle.
 - Repository artifacts must identify an exact trusted fixture revision.
+- Repository fixture revisions now retain the full SHA-256 digest and copied workspaces
+  are re-fingerprinted before patch application.
+- The default Python sandbox image is pinned by immutable OCI digest.
 - `EvaluationCodeVerifier` now defaults to the Managed sandbox instead of an incompatible
   legacy runtime.
 
@@ -44,6 +51,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Repository verification rejects binary, symlink, NUL, oversized, absolute, drive, and
   traversal patches or changes to protected fixture tests; execution uses a read-only
   workspace and no network.
+- Copied fixtures reject symlinks and stale content, while protected test fingerprints are
+  compared again after `git apply` to catch parser-bypass rename or deletion patches.
 
 ## [0.3.0] - 2026-07-31
 

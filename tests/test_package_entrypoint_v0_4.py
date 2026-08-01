@@ -14,4 +14,5 @@ def test_python_module_entrypoint_uses_v2_dispatcher() -> None:
 def test_installed_console_script_uses_v2_dispatcher() -> None:
     project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 
+    assert project["project"]["version"] == "0.4.0"
     assert project["project"]["scripts"]["agentloop"] == "agentloop.main_v2:main"
