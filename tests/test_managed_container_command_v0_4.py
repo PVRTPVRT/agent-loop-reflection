@@ -3,6 +3,12 @@ from pathlib import Path
 import pytest
 
 from agentloop.managed_sandbox_v2 import ManagedDockerSandboxV2
+from agentloop.sandbox import DEFAULT_SANDBOX_IMAGE
+
+
+def test_default_sandbox_image_is_pinned_by_digest() -> None:
+    assert ManagedDockerSandboxV2().image == DEFAULT_SANDBOX_IMAGE
+    assert "@sha256:" in DEFAULT_SANDBOX_IMAGE
 
 
 def test_create_command_preserves_tokens_and_security_controls(tmp_path) -> None:

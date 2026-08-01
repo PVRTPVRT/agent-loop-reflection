@@ -20,7 +20,7 @@ from agentloop.evaluation_boundary import (
     TestCommandSpec,
     UnsupportedEvaluationBoundaryError,
 )
-from agentloop.sandbox import ExecutionResult
+from agentloop.sandbox import ExecutionResult, SandboxUnavailableError
 from agentloop.verifier import VerificationResult
 
 _REPOSITORY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
@@ -83,7 +83,22 @@ def repository_fingerprint(root: Path) -> str:
         digest.update(b"\0")
         digest.update(path.read_bytes())
         digest.update(b"\0")
-    return digest.hexdigest()[:16]
+    return digest.hexdigest()
+
+
+def _protected_path_fingerprints(
+    root: Path,
+    protected_paths: Sequence[str],
+) -> Mapping[str, str]:
+    fingerprints: dict[str, str] = {}
+    for relative in protected_paths:
+        path = root.joinpath(*PurePosixPath(relative).parts)
+        if path.is_symlink() or not path.is_file():
+            raise RepositoryFixtureError(
+                f"protected fixture path is no longer a regular file: {relative}"
+            )
+        fingerprints[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return MappingProxyType(fingerprints)
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,9 +158,7 @@ class RepositoryFixtureRegistry:
         try:
             fixture = self._fixtures[repository_id]
         except KeyError as exc:
-            raise RepositoryFixtureError(
-                f"unknown repository fixture: {repository_id}"
-            ) from exc
+            raise RepositoryFixtureError(f"unknown repository fixture: {repository_id}") from exc
         if fixture.revision != revision:
             raise RepositoryFixtureError(
                 f"fixture revision mismatch for {repository_id}: "
@@ -206,7 +219,20 @@ class RepositoryWorkspaceVerifier:
                 fixture.root,
                 workspace,
                 ignore=shutil.ignore_patterns(*_IGNORED_FIXTURE_PARTS),
+                symlinks=True,
             )
+            try:
+                copied_revision = repository_fingerprint(workspace)
+                if copied_revision != fixture.revision:
+                    raise RepositoryFixtureError(
+                        f"fixture changed after registration: {fixture.repository_id}"
+                    )
+                protected_before = _protected_path_fingerprints(
+                    workspace,
+                    fixture.protected_paths,
+                )
+            except RepositoryFixtureError as exc:
+                return VerificationResult(success=False, message=str(exc))
             patch_path = temp_root / "candidate.patch"
             patch_path.write_bytes(artifact.patch.encode("utf-8"))
 
@@ -217,13 +243,29 @@ class RepositoryWorkspaceVerifier:
             if applied is not None:
                 return applied
 
-            result = self.runner.execute_workspace(
-                workspace,
-                command=spec.command,
-                working_directory=spec.working_directory,
-                timeout_seconds=spec.timeout_seconds,
-                read_only=True,
-            )
+            try:
+                protected_after = _protected_path_fingerprints(
+                    workspace,
+                    fixture.protected_paths,
+                )
+            except RepositoryFixtureError as exc:
+                return VerificationResult(success=False, message=str(exc))
+            if protected_after != protected_before:
+                return VerificationResult(
+                    success=False,
+                    message="candidate patch modifies protected fixture paths",
+                )
+
+            try:
+                result = self.runner.execute_workspace(
+                    workspace,
+                    command=spec.command,
+                    working_directory=spec.working_directory,
+                    timeout_seconds=spec.timeout_seconds,
+                    read_only=True,
+                )
+            except SandboxUnavailableError as exc:
+                return VerificationResult(success=False, message=str(exc))
             return VerificationResult(success=result.success, message=result.message)
 
     def _apply_patch(

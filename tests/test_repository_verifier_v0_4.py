@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -21,7 +22,7 @@ from agentloop.repository_verifier import (
     RepositoryWorkspaceVerifier,
     repository_fingerprint,
 )
-from agentloop.sandbox import ExecutionResult
+from agentloop.sandbox import ExecutionResult, SandboxUnavailableError
 
 FIXTURE_ROOT = Path("benchmarks/repositories/calculator-v1")
 FIX_PATCH = Path("benchmarks/fixtures/repository-calculator-fix.patch")
@@ -98,6 +99,7 @@ def test_repository_fixture_requires_protected_tests() -> None:
     with pytest.raises(ValueError, match="protected test path"):
         RepositoryFixture.load("calculator-v1", FIXTURE_ROOT)
 
+
 def test_repository_fingerprint_is_stable_and_content_sensitive(tmp_path) -> None:
     first = tmp_path / "first"
     second = tmp_path / "second"
@@ -107,9 +109,57 @@ def test_repository_fingerprint_is_stable_and_content_sensitive(tmp_path) -> Non
     (second / "module.py").write_text("VALUE = 1\n", encoding="utf-8")
 
     assert repository_fingerprint(first) == repository_fingerprint(second)
+    assert len(repository_fingerprint(first)) == 64
 
     (second / "module.py").write_text("VALUE = 2\n", encoding="utf-8")
     assert repository_fingerprint(first) != repository_fingerprint(second)
+
+
+def test_repository_verifier_rejects_fixture_changed_after_registration(tmp_path) -> None:
+    fixture_root = tmp_path / "fixture"
+    shutil.copytree(FIXTURE_ROOT, fixture_root)
+    fixture = RepositoryFixture.load(
+        "calculator-v1",
+        fixture_root,
+        protected_paths=("test_calculator.py",),
+    )
+    runner = InspectingRunner()
+    verifier = RepositoryWorkspaceVerifier(
+        runner=runner,
+        fixtures=RepositoryFixtureRegistry([fixture]),
+    )
+    (fixture_root / "calculator.py").write_text(
+        "def add(a, b):\n    return 0\n",
+        encoding="utf-8",
+    )
+
+    result = verifier.verify_artifact(patch_artifact(fixture), command_spec())
+
+    assert result.success is False
+    assert "fixture changed after registration" in result.message
+    assert runner.calls == []
+
+
+class UnavailableRunner(InspectingRunner):
+    def execute_workspace(self, *args, **kwargs) -> ExecutionResult:
+        raise SandboxUnavailableError("Docker unavailable")
+
+
+def test_repository_verifier_fails_closed_when_sandbox_is_unavailable() -> None:
+    fixture = RepositoryFixture.load(
+        "calculator-v1",
+        FIXTURE_ROOT,
+        protected_paths=("test_calculator.py",),
+    )
+    verifier = RepositoryWorkspaceVerifier(
+        runner=UnavailableRunner(),
+        fixtures=RepositoryFixtureRegistry([fixture]),
+    )
+
+    result = verifier.verify_artifact(patch_artifact(fixture), command_spec())
+
+    assert result.success is False
+    assert result.message == "Docker unavailable"
 
 
 def test_repository_verifier_applies_patch_to_disposable_copy() -> None:
@@ -133,9 +183,7 @@ def test_repository_verifier_applies_patch_to_disposable_copy() -> None:
 
 def test_repository_verifier_rejects_revision_mismatch_before_execution() -> None:
     verifier, fixture, runner = build_verifier()
-    artifact = patch_artifact(fixture).model_copy(
-        update={"base_revision": "wrong-revision"}
-    )
+    artifact = patch_artifact(fixture).model_copy(update={"base_revision": "wrong-revision"})
 
     result = verifier.verify_artifact(artifact, command_spec())
 
@@ -180,6 +228,32 @@ def test_repository_verifier_rejects_protected_test_change() -> None:
 
     assert result.success is False
     assert "protected fixture paths: test_calculator.py" in result.message
+    assert runner.calls == []
+
+
+def test_repository_verifier_detects_protected_rename_after_apply() -> None:
+    verifier, fixture, runner = build_verifier()
+    parser_bypass_patch = """diff --git a/calculator.py b/calculator.py
+--- a/calculator.py
++++ b/calculator.py
+@@ -1,3 +1,3 @@
+ def add(a: int, b: int) -> int:
+-    \"\"\"Return the sum of two integers.\"\"\"
++    \"\"\"Add two integers.\"\"\"
+     return a - b
+diff --git a/test_calculator.py b/disabled_test_calculator.py
+similarity index 100%
+rename from test_calculator.py
+rename to disabled_test_calculator.py
+"""
+
+    result = verifier.verify_artifact(
+        patch_artifact(fixture, patch=parser_bypass_patch),
+        command_spec(),
+    )
+
+    assert result.success is False
+    assert "protected fixture path is no longer a regular file" in result.message
     assert runner.calls == []
 
 

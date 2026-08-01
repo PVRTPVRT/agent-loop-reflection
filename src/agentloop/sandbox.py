@@ -5,6 +5,10 @@ from __future__ import annotations
 import subprocess
 from dataclasses import dataclass
 
+DEFAULT_SANDBOX_IMAGE = (
+    "python@sha256:57cd7c3a7a273101a6485ba99423ee568157882804b1124b4dd04266317710de"
+)
+
 
 class SandboxUnavailableError(RuntimeError):
     """Raised when the secure Docker execution boundary is unavailable."""
@@ -25,7 +29,7 @@ class DockerSandbox:
     def __init__(
         self,
         *,
-        image: str = "python:3.12-slim",
+        image: str = DEFAULT_SANDBOX_IMAGE,
         timeout_seconds: int = 5,
         pull_timeout_seconds: int = 120,
         memory_limit: str = "128m",
