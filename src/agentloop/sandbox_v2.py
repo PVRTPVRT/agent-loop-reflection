@@ -1,61 +1,17 @@
-"""V2 Docker sandbox harness with expected-exception assertions."""
+"""Function-case runner harness used by the managed Docker sandbox."""
 
 from __future__ import annotations
 
 import json
-import subprocess
-import tempfile
 import textwrap
 from pathlib import Path
 from typing import Any
 
-from agentloop.sandbox import DockerSandbox, ExecutionResult
+from agentloop.sandbox import DockerSandbox
 
 
 class DockerSandboxV2(DockerSandbox):
-    def execute_v2(
-        self,
-        code: str,
-        test_suite: dict[str, Any],
-    ) -> ExecutionResult:
-        self.ensure_available()
-        runner_content = self._build_v2_runner_script(code, test_suite)
-
-        with tempfile.TemporaryDirectory(prefix="agentloop_sandbox_v2_") as temp_dir:
-            self._write_runner_script(Path(temp_dir), runner_content)
-            command = self._build_docker_command(Path(temp_dir).resolve())
-            try:
-                completed = subprocess.run(
-                    command,
-                    capture_output=True,
-                    text=True,
-                    timeout=self.timeout_seconds,
-                    encoding="utf-8",
-                    check=False,
-                )
-            except subprocess.TimeoutExpired:
-                return ExecutionResult(
-                    success=False,
-                    message=(f"Execution timed out after {self.timeout_seconds}s"),
-                )
-
-        stdout = completed.stdout.strip()
-        stderr = completed.stderr.strip()
-        if completed.returncode == 0:
-            return ExecutionResult(
-                success=True,
-                message=stdout or "All V2 cases passed",
-                stdout=stdout,
-                stderr=stderr,
-                exit_code=completed.returncode,
-            )
-        return ExecutionResult(
-            success=False,
-            message=self._parse_v2_stderr(stderr),
-            stdout=stdout,
-            stderr=stderr,
-            exit_code=completed.returncode,
-        )
+    """Build and parse the V2 function-case runner without owning lifecycle."""
 
     @staticmethod
     def _write_runner_script(temp_dir: Path, runner_content: str) -> Path:

@@ -1,4 +1,4 @@
-# Agent Loop Reflection v0.3
+# Agent Loop Reflection v0.4
 
 [![CI](https://github.com/PVRTPVRT/agent-loop-reflection/actions/workflows/ci.yml/badge.svg)](https://github.com/PVRTPVRT/agent-loop-reflection/actions/workflows/ci.yml)
 
@@ -6,9 +6,9 @@
 生成候选，在隔离 Docker 中执行冻结的公开路由套件；失败时把候选、测试和
 expected/actual 证据交给 Critic 与 Coder 做有界修复，最后由独立隐藏集验收。
 
-v0.3 的重点是把一次成功演示扩展为可审计的困难任务矩阵：增加流式帧解码器、幂等
-账本与 TTL/LRU 状态机，保留跨轮失败历史，并通过可选 OpenTelemetry/Phoenix
-展示真实执行链路。
+v0.4 在 v0.3 困难任务矩阵之上加入类型化 Artifact/Evaluation 边界、可信仓库
+Fixture、Repository Patch 隔离验证与零 API Mutation Matrix；同时删除不可达历史路径，
+把函数和仓库验证统一到同一个 Managed Docker 生命周期。
 
 ## 核心闭环
 
@@ -37,6 +37,8 @@ flowchart LR
 - Evidence-Driven Repair：失败候选和真实验证证据跨工作流传递
 - Repair attempt history：后续轮次能看到此前补丁及其最新失败
 - Managed Docker：非 root、只读文件系统、无网络、资源限制与强制清理
+- Repository Patch 验证：完整 SHA-256 revision、快照复验、受保护测试与真实命令
+- 零 API Repository Mutation Matrix：Easy/Hard 两个任务、正确修复与非修复对照
 - 合取成功门控：内部修复失败不能被覆盖不足的隐藏集误判为成功
 - 可选 OpenTelemetry：展示 Agent、模型、验证、Token 和耗时 Span，不记录密钥、
   prompt、生成代码或测试参数
@@ -75,6 +77,14 @@ Copy-Item .env.example .env
 .\scripts\run-v2.cmd adaptive
 ```
 
+安装为可编辑包后，也可以使用同一个 V2 入口：
+
+```powershell
+agentloop direct
+agentloop reflection
+agentloop adaptive
+```
+
 v0.3 困难任务矩阵与失败重放：
 
 ```powershell
@@ -84,6 +94,14 @@ v0.3 困难任务矩阵与失败重放：
 
 这些脚本会调用真实模型并产生费用。`repair-replay` 从已记录且可重现的错误候选开始，
 用于验证 Repair 分支；它不会被计入自然失败率或自然通过率。
+
+仓库级零 API Mutation Matrix：
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q `
+    tests\test_repository_docker_integration_v0_4.py `
+    -k mutation_matrix
+```
 
 ## 测试
 
@@ -95,11 +113,23 @@ v0.3 困难任务矩阵与失败重放：
 
 ```text
 Ruff: passed
-regular/property/lineage/telemetry tests: 111 passed
-Docker integration tests: 5 passed
+deterministic non-Docker tests: 130 passed
+Docker integration tests: 8 passed
+unique test functions in the release gate: 138
 ```
 
 ## 已验证结果
+
+### v0.4 仓库级零 API Mutation Matrix
+
+| Task | Difficulty | Correct patch | Non-fixing mutation |
+|---|---|---:|---:|
+| Calculator repair | Easy | pass | rejected |
+| Chunked frame decoder | Hard | pass | rejected |
+
+四个 Mutation 的预期与观察结果 4/4 一致；Fixture 使用完整 SHA-256 revision，
+测试文件在 Patch 前后独立校验，执行镜像固定到 OCI digest。该结果证明仓库验证边界能
+区分修复与表面改动，但尚未证明 LLM 能稳定生成仓库 Patch。
 
 ### v0.3 困难任务与失败历史
 
@@ -142,6 +172,9 @@ from agentloop.v2 import (
     ManagedDockerSandboxV2,
     RepairContext,
     RepairReplayStrategyV2,
+    RepositoryBenchmarkDataset,
+    RepositoryWorkspaceVerifier,
+    run_repository_mutation_matrix,
 )
 ```
 
@@ -153,16 +186,20 @@ from agentloop.v2 import (
 2. 版本化 JSON Benchmark 与 Trace 保存可复现实验事实；
 3. OpenTelemetry/Phoenix 用于运行时排障和展示，不替代 Benchmark 统计。
 
-当前 Oracle 仍依赖预注册公开契约，不能自动理解任意业务语义；困难矩阵只有三个任务，
-仍需更大样本和重复运行后才能报告置信区间。
+当前 Oracle 仍依赖预注册公开契约，不能自动理解任意业务语义；自然 LLM 困难矩阵只有
+三个函数任务，仓库矩阵只有两个确定性任务。项目尚未声称仓库级 LLM 修复具备统计优势；
+该结论必须等待付费的重复 Direct/Adaptive Patch 实验。
 
 ## 文档
 
+- [v0.4 仓库 Mutation Matrix 报告](docs/knowledge-base/experiments/2026-08-01-v0.4-repository-mutation-matrix.md)
 - [作品展示：v0.3 架构与结果](docs/portfolio-showcase.md)
 - [v0.3 困难矩阵与失败历史实验报告](docs/knowledge-base/experiments/2026-07-28-v0.3-hard-matrix.md)
 - [OpenTelemetry / Phoenix 架构](docs/knowledge-base/architecture/opentelemetry.md)
 - [Evidence-Driven Repair 架构](docs/knowledge-base/architecture/evidence-driven-repair.md)
 - [v0.2 闭环实验与 R1 假阳性复盘](docs/knowledge-base/experiments/2026-07-28-v0.2-repair-closed-loop.md)
+- [ADR-004：Managed Repository Verification](docs/knowledge-base/decisions/ADR-004-managed-repository-verification.md)
+- [ADR-003：Artifact 与 Evaluation 边界](docs/knowledge-base/decisions/ADR-003-artifact-evaluation-boundary.md)
 - [ADR-002：合取成功门控](docs/knowledge-base/decisions/ADR-002-conjunctive-success-gate.md)
 - [安全执行决策](docs/knowledge-base/decisions/ADR-001-secure-execution.md)
 - [测试说明](docs/knowledge-base/TESTING.md)

@@ -8,6 +8,11 @@ from pathlib import Path
 
 from agentloop.benchmark import MeteredLLMProvider
 from agentloop.benchmark_models import StrategyTaskResult
+from agentloop.evaluation_boundary import (
+    function_case_spec,
+    source_code_artifact,
+    verify_artifact,
+)
 from agentloop.evaluation_v2_models import EvaluationTask
 from agentloop.repair_v2 import RepairContext
 from agentloop.routing_suites import RoutingSuiteRegistry
@@ -43,9 +48,12 @@ class RepairReplayStrategyV2:
         self.provider.reset()
         started = time.perf_counter()
         routing_suite = self.routing_suites.require(task.task_id)
-        recorded_failure = self.verifier.verify(
-            self.recorded_candidate,
-            routing_suite,
+        routing_spec = function_case_spec(routing_suite)
+        recorded_artifact = source_code_artifact(self.recorded_candidate)
+        recorded_failure = verify_artifact(
+            self.verifier,
+            recorded_artifact,
+            routing_spec,
         )
         if recorded_failure.success:
             raise ValueError(
@@ -55,8 +63,8 @@ class RepairReplayStrategyV2:
 
         repair_context = RepairContext(
             task_id=task.task_id,
-            failed_code=self.recorded_candidate,
-            routing_suite=routing_suite,
+            candidate_artifact=recorded_artifact,
+            evaluation_spec=routing_spec,
             verification_message=recorded_failure.message,
         )
         workflow_result = self.repair_workflow.run(
@@ -64,7 +72,11 @@ class RepairReplayStrategyV2:
             repair_context=repair_context,
         )
         hidden_verification = (
-            self.verifier.verify(workflow_result.code, task.evaluation_suite)
+            verify_artifact(
+                self.verifier,
+                source_code_artifact(workflow_result.code),
+                function_case_spec(task.evaluation_suite),
+            )
             if workflow_result.code
             else None
         )
@@ -95,6 +107,8 @@ class RepairReplayStrategyV2:
             experiment_type="recorded-failure-replay",
             candidate_source=self.candidate_source,
             recorded_candidate=self.recorded_candidate,
+            candidate_artifact=recorded_artifact,
+            routing_spec=routing_spec,
             recorded_failure=recorded_failure,
             repair_context=repair_context,
             workflow_result=workflow_result,

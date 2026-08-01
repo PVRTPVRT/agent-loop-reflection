@@ -1,7 +1,7 @@
-# Agent Loop Reflection v0.3：作品展示
+# Agent Loop Reflection v0.4：作品展示
 
-本页用于项目快速评审。v0.3 的重点不是增加更多 Agent，而是让困难任务中的自然失败
-可路由、可修复、可复盘，并把成功与失败都保留为版本化证据。
+本页用于项目快速评审。v0.4 没有增加更多 Agent，而是在 v0.3 困难任务闭环之外增加
+类型化函数/仓库评测边界、可信 Fixture、零 API Mutation Matrix，并删除不可达历史路径。
 
 ## 系统架构
 
@@ -36,6 +36,27 @@ flowchart LR
 - Docker 负责非 root、无网络、只读文件系统、资源限制和强制清理。
 - Repair 的后续轮次能看到此前候选、补丁和最新失败，而不是重新抽奖。
 - Phoenix 只展示安全的运行元数据；JSON Benchmark 与 Trace 才是版本化实验记录。
+
+## v0.4 仓库评测边界
+
+```mermaid
+flowchart LR
+    A["RepositoryPatchArtifact<br/>repository ID + exact revision"] --> B["Trusted Fixture<br/>full SHA-256"]
+    B --> C["Disposable copy<br/>fingerprint recheck"]
+    C --> D["Patch validation<br/>git apply --check"]
+    D --> E["Protected-test<br/>post-apply fingerprint"]
+    E --> F["Managed Docker<br/>tokenized tests"]
+    F --> G["Pass / fail evidence"]
+```
+
+| Task | Difficulty | Correct patch | Non-fixing mutation |
+|---|---|---:|---:|
+| Calculator | Easy | pass | rejected |
+| Chunked frame decoder | Hard | pass | rejected |
+
+4/4 Mutation 与预注册期望一致。执行镜像固定到 OCI digest，Patch 不能修改或重命名
+受保护测试，Docker 不可用时安全失败。该矩阵不调用模型，因此验证的是 Evaluator，
+不是 LLM 仓库修复成功率。
 
 ## v0.3 困难任务矩阵
 
@@ -108,7 +129,8 @@ v0.2 曾发现一次假阳性：内部 Repair 失败，但旧隐藏集没有覆�
 - 失败候选、验证证据和跨轮尝试历史不会丢失。
 - 冻结公开套件与独立隐藏套件共同验收，内部失败无法被隐藏集盲点覆盖。
 - 每次实验都有 Dataset 指纹、JSON 报告、逐任务 Trace 与安全的运行时 Span。
-- 当前完整门禁为 111 项常规/属性/血缘/Telemetry 测试和 5 项 Docker 测试。
+- 仓库评测能拒绝 stale Fixture、测试篡改和不修复行为，函数与仓库共用同一沙箱生命周期。
+- 当前完整门禁为 130 项确定性测试和 8 项 Docker 集成测试。
 
 不能夸大：
 
@@ -116,17 +138,19 @@ v0.2 曾发现一次假阳性：内部 Repair 失败，但旧隐藏集没有覆�
 - 单次 Prompt-only 与 History-aware 重放不能证明历史在所有模型上都有效。
 - 当前 Oracle 依赖预注册契约，不能自动理解任意复杂业务语义。
 - Phoenix 提高的是可解释性与排障效率，不直接提高模型正确率。
+- 两个零 API 仓库任务不能证明 LLM 能生成正确 Patch，也不能证明 Adaptive 更优。
 
 ## 三分钟展示顺序
 
 1. 用架构图解释 Direct 优先、失败才升级、最终合取验收。
-2. 展示 Hard Matrix 的自然 `2/3`，主动指出 TTL/LRU 的真实失败。
-3. 打开 TTL/LRU 的 Prompt-only 与 History-aware 两条 Trace 对照。
-4. 在 Phoenix 中展开一个任务 Span 树，查看模型调用、Docker 验证、Token 和耗时。
-5. 以“证据边界”收尾：这是可复现闭环，不是三道题上的泛化宣言。
+2. 展示 v0.4 Repository Matrix 的 4/4 正反对照和完整 SHA-256 可信边界。
+3. 展示 v0.3 Hard Matrix 的自然 `2/3`，主动指出 TTL/LRU 的真实失败。
+4. 打开 TTL/LRU 的 Prompt-only 与 History-aware 两条 Trace 对照。
+5. 在 Phoenix 中展开 Span 树，并以“Evaluator 已验证、仓库 LLM 实验未声称”收尾。
 
 详细证据见：
 
+- [v0.4 仓库 Mutation Matrix 报告](knowledge-base/experiments/2026-08-01-v0.4-repository-mutation-matrix.md)
 - [v0.3 困难矩阵与失败历史实验报告](knowledge-base/experiments/2026-07-28-v0.3-hard-matrix.md)
 - [OpenTelemetry / Phoenix 架构](knowledge-base/architecture/opentelemetry.md)
 - [Evidence-Driven Repair 架构](knowledge-base/architecture/evidence-driven-repair.md)

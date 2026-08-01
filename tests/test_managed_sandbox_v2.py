@@ -1,3 +1,4 @@
+import re
 import subprocess
 
 import pytest
@@ -7,22 +8,34 @@ from agentloop.evaluation_verifier import EvaluationCodeVerifier
 from agentloop.managed_sandbox_v2 import ManagedDockerSandboxV2
 
 
-def agentloop_container_ids() -> list[str]:
+def managed_execution_container_names() -> list[str]:
     result = subprocess.run(
-        ["docker", "ps", "-aq", "--filter", "name=agentloop-"],
+        [
+            "docker",
+            "ps",
+            "-a",
+            "--filter",
+            "name=agentloop-",
+            "--format",
+            "{{.Names}}",
+        ],
         capture_output=True,
         text=True,
         timeout=10,
         check=False,
     )
-    return [line for line in result.stdout.splitlines() if line.strip()]
+    return [
+        name
+        for name in result.stdout.splitlines()
+        if re.fullmatch(r"agentloop-[0-9a-f]{12}", name)
+    ]
 
 
 def test_managed_sandbox_removes_container_after_success() -> None:
     sandbox = ManagedDockerSandboxV2()
     if not sandbox.is_available():
         pytest.skip("Docker Engine is unavailable")
-    before = set(agentloop_container_ids())
+    assert managed_execution_container_names() == []
     suite = EvaluationSuite(
         function_name="identity",
         test_cases=[
@@ -41,14 +54,14 @@ def test_managed_sandbox_removes_container_after_success() -> None:
     )
 
     assert result.success is True
-    assert set(agentloop_container_ids()) == before
+    assert managed_execution_container_names() == []
 
 
 def test_managed_sandbox_removes_container_after_timeout() -> None:
     sandbox = ManagedDockerSandboxV2(timeout_seconds=1)
     if not sandbox.is_available():
         pytest.skip("Docker Engine is unavailable")
-    before = set(agentloop_container_ids())
+    assert managed_execution_container_names() == []
     suite = EvaluationSuite(
         function_name="forever",
         test_cases=[
@@ -68,4 +81,4 @@ def test_managed_sandbox_removes_container_after_timeout() -> None:
 
     assert result.success is False
     assert "timed out" in result.message
-    assert set(agentloop_container_ids()) == before
+    assert managed_execution_container_names() == []

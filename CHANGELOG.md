@@ -5,6 +5,55 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.4.0] - 2026-08-01
+
+### Added
+
+- A typed artifact/evaluation boundary for source code, repository patches, function
+  cases, and sandboxed test-command specifications.
+- A generic verifier protocol with an adapter for the existing function-case verifier.
+- Trusted repository fixtures, content fingerprints, disposable patch workspaces, and a
+  deterministic repair/non-fix mutation corpus.
+- End-to-end repository patch verification through tokenized tests in Managed Docker.
+- A versioned zero-API repository mutation matrix covering an easy calculator repair and
+  a hard chunked frame-decoder boundary bug, with committed lineage evidence.
+
+### Changed
+
+- Adaptive, evidence-driven repair, and recorded-failure replay now pass typed artifacts
+  and evaluation specifications while retaining the v0.3 constructor interface.
+- The installed `agentloop` command and `python -m agentloop` now use the single V2
+  Direct/Reflection/Adaptive dispatcher.
+- Deterministic and Docker test stages no longer execute Managed Docker tests twice.
+- Function cases and repository test commands now share one named-container execution
+  lifecycle.
+- Repository artifacts must identify an exact trusted fixture revision.
+- Repository fixture revisions now retain the full SHA-256 digest and copied workspaces
+  are re-fingerprinted before patch application.
+- The default Python sandbox image is pinned by immutable OCI digest.
+- `EvaluationCodeVerifier` now defaults to the Managed sandbox instead of an incompatible
+  legacy runtime.
+
+### Removed
+
+- Twenty production-unreachable v0.1 portability, contract, comparison, and transitional
+  CLI modules; their released history remains available from the `v0.1.0` and `v0.2.0`
+  tags.
+- Ten test files that exclusively exercised those removed historical modules.
+- The interrupt-prone `docker run --rm` execution path and its excluded legacy test.
+
+### Security
+
+- Test-command specifications reject blank tokens, absolute or escaping working
+  directories, unbounded timeouts, and network-enabled execution.
+- Repository verification rejects binary, symlink, NUL, oversized, absolute, drive, and
+  traversal patches or changes to protected fixture tests; execution uses a read-only
+  workspace and no network.
+- Copied fixtures reject symlinks and stale content, while protected test fingerprints are
+  compared again after `git apply` to catch parser-bypass rename or deletion patches.
+
 ## [0.3.0] - 2026-07-31
 
 ### Added

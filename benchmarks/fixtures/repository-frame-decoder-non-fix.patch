@@ -1,0 +1,10 @@
+diff --git a/frame_decoder.py b/frame_decoder.py
+--- a/frame_decoder.py
++++ b/frame_decoder.py
+@@ -1,5 +1,5 @@
+ def decode_frames_by_chunk(chunks, max_frame_size):
+-    """Decode length-prefixed frames while preserving chunk alignment."""
++    """Decode length-prefixed frames from hexadecimal chunks."""
+     if (
+         isinstance(max_frame_size, bool)
+         or not isinstance(max_frame_size, int)

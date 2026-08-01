@@ -8,11 +8,11 @@ from agentloop.evaluation_v2_models import (
     EvaluationSuite,
 )
 from agentloop.evaluation_verifier import EvaluationCodeVerifier
-from agentloop.sandbox_v2 import DockerSandboxV2
+from agentloop.managed_sandbox_v2 import ManagedDockerSandboxV2
 
 
 def test_docker_accepts_required_value_error() -> None:
-    sandbox = DockerSandboxV2()
+    sandbox = ManagedDockerSandboxV2()
     if not sandbox.is_available():
         pytest.skip("Docker Engine is unavailable")
 
@@ -40,7 +40,7 @@ def test_docker_accepts_required_value_error() -> None:
 
 
 def test_docker_accepts_frame_decoder_reference() -> None:
-    sandbox = DockerSandboxV2()
+    sandbox = ManagedDockerSandboxV2()
     if not sandbox.is_available():
         pytest.skip("Docker Engine is unavailable")
 
@@ -61,7 +61,7 @@ def test_docker_accepts_frame_decoder_reference() -> None:
 
 
 def test_docker_accepts_idempotent_ledger_reference() -> None:
-    sandbox = DockerSandboxV2()
+    sandbox = ManagedDockerSandboxV2()
     if not sandbox.is_available():
         pytest.skip("Docker Engine is unavailable")
 

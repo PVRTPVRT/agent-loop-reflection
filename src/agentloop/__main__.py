@@ -1,3 +1,4 @@
-from agentloop.cli import main
+from agentloop.main_v2 import main
 
-raise SystemExit(main())
+if __name__ == "__main__":
+    raise SystemExit(main())

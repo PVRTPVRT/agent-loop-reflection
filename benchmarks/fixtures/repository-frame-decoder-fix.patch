@@ -1,0 +1,12 @@
+diff --git a/frame_decoder.py b/frame_decoder.py
+--- a/frame_decoder.py
++++ b/frame_decoder.py
+@@ -27,7 +27,7 @@ def decode_frames_by_chunk(chunks, max_frame_size):
+                 del buffer[:4]
+                 if expected_length > max_frame_size:
+                     raise ValueError("frame exceeds max_frame_size")
+-            if len(buffer) <= expected_length:
++            if len(buffer) < expected_length:
+                 break
+             payload = bytes(buffer[:expected_length])
+             del buffer[:expected_length]
