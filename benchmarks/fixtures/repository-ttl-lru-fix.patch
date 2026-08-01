@@ -1,0 +1,22 @@
+diff --git a/ttl_lru.py b/ttl_lru.py
+--- a/ttl_lru.py
++++ b/ttl_lru.py
+@@ -11,13 +11,11 @@ def simulate_ttl_lru(capacity: int, events: list[dict[str, Any]]) -> list[Any]:
+     results: list[Any] = []
+ 
+     def evict_expired(current_time: int) -> None:
+-        while cache:
+-            key = next(iter(cache))
+-            _, expires_at = cache[key]
+-            if expires_at <= current_time:
+-                cache.popitem(last=False)
+-            else:
+-                break
++        expired = [
++            key for key, (_, expires_at) in cache.items() if expires_at <= current_time
++        ]
++        for key in expired:
++            del cache[key]
+ 
+     for event in events:
+         current_time = event["time"]

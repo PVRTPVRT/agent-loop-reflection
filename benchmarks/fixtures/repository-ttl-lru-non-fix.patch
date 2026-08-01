@@ -1,0 +1,11 @@
+diff --git a/ttl_lru.py b/ttl_lru.py
+--- a/ttl_lru.py
++++ b/ttl_lru.py
+@@ -3,6 +3,6 @@ from typing import Any
+ 
+ 
+ def simulate_ttl_lru(capacity: int, events: list[dict[str, Any]]) -> list[Any]:
+-    """Simulate TTL expiry and LRU eviction without using wall-clock time."""
++    """Simulate a deterministic TTL-aware least-recently-used cache."""
+     if capacity < 0:
+         raise ValueError("capacity must be non-negative")

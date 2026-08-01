@@ -1,4 +1,4 @@
-# Agent Loop Reflection v0.4
+# Agent Loop Reflection
 
 [![CI](https://github.com/PVRTPVRT/agent-loop-reflection/actions/workflows/ci.yml/badge.svg)](https://github.com/PVRTPVRT/agent-loop-reflection/actions/workflows/ci.yml)
 
@@ -9,6 +9,10 @@ expected/actual 证据交给 Critic 与 Coder 做有界修复，最后由独立�
 v0.4 在 v0.3 困难任务矩阵之上加入类型化 Artifact/Evaluation 边界、可信仓库
 Fixture、Repository Patch 隔离验证与零 API Mutation Matrix；同时删除不可达历史路径，
 把函数和仓库验证统一到同一个 Managed Docker 生命周期。
+
+v0.5 candidate 把该边界接到真实 Repository API Pilot：模型通过 Structured Outputs
+返回文件替换，确定性程序生成 Patch；Direct 与 Adaptive 共享同一个初始候选，只有失败
+才追加一次 Repair，并用美元硬预算限制真实调用。
 
 ## 核心闭环
 
@@ -38,7 +42,8 @@ flowchart LR
 - Repair attempt history：后续轮次能看到此前补丁及其最新失败
 - Managed Docker：非 root、只读文件系统、无网络、资源限制与强制清理
 - Repository Patch 验证：完整 SHA-256 revision、快照复验、受保护测试与真实命令
-- 零 API Repository Mutation Matrix：Easy/Hard 两个任务、正确修复与非修复对照
+- 零 API Repository Mutation Matrix：三类任务、6 个正确修复/非修复对照
+- Repository Structured Outputs、确定性 Patch 渲染、配对 Direct/Adaptive 与美元硬预算
 - 合取成功门控：内部修复失败不能被覆盖不足的隐藏集误判为成功
 - 可选 OpenTelemetry：展示 Agent、模型、验证、Token 和耗时 Span，不记录密钥、
   prompt、生成代码或测试参数
@@ -99,8 +104,13 @@ v0.3 困难任务矩阵与失败重放：
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q `
-    tests\test_repository_docker_integration_v0_4.py `
+    tests\test_repository_docker_integration.py `
     -k mutation_matrix
+```
+仓库级真实 API 配对实验（会产生费用，脚本内有 `$0.07` 本轮硬上限）：
+
+```powershell
+.\scripts\run-repository-api-pilot.cmd
 ```
 
 ## 测试
@@ -113,21 +123,34 @@ v0.3 困难任务矩阵与失败重放：
 
 ```text
 Ruff: passed
-deterministic non-Docker tests: 130 passed
+deterministic non-Docker tests: 145 passed
 Docker integration tests: 8 passed
-unique test functions in the release gate: 138
+unique test functions in the release gate: 153
 ```
 
 ## 已验证结果
 
-### v0.4 仓库级零 API Mutation Matrix
+### v0.5 仓库级真实 API Pilot
+
+| Evidence | Result | Extra Repair calls | Actual cost |
+|---|---:|---:|---:|
+| R4 natural repair trace | Direct 3/3, Adaptive 3/3 | 1 | `$0.00280590` |
+| R6 paired, 3 tasks × 5 | Direct 15/15, Adaptive 15/15 | 0 | `$0.00525650` |
+| Full v0.5 development | — | — | `$0.02284045` |
+
+R4 的 Frame Decoder 首次候选只处理零长度帧，保留精确边界错误；验证失败后 Repair
+改正并通过。R6 的 15 个共享初始候选全部通过，所以 Adaptive 没有额外调用。两组证据
+共同证明 Repair 分支可达以及简单候选不会无谓升级，但样本不足以证明总体成功率提升。
+
+### v0.5 仓库级零 API Mutation Matrix
 
 | Task | Difficulty | Correct patch | Non-fixing mutation |
 |---|---|---:|---:|
 | Calculator repair | Easy | pass | rejected |
 | Chunked frame decoder | Hard | pass | rejected |
+| TTL-LRU cache | Hard | pass | rejected |
 
-四个 Mutation 的预期与观察结果 4/4 一致；Fixture 使用完整 SHA-256 revision，
+v0.5 六个 Mutation 的预期与观察结果 6/6 一致；Fixture 使用完整 SHA-256 revision，
 测试文件在 Patch 前后独立校验，执行镜像固定到 OCI digest。该结果证明仓库验证边界能
 区分修复与表面改动，但尚未证明 LLM 能稳定生成仓库 Patch。
 
@@ -186,12 +209,13 @@ from agentloop.v2 import (
 2. 版本化 JSON Benchmark 与 Trace 保存可复现实验事实；
 3. OpenTelemetry/Phoenix 用于运行时排障和展示，不替代 Benchmark 统计。
 
-当前 Oracle 仍依赖预注册公开契约，不能自动理解任意业务语义；自然 LLM 困难矩阵只有
-三个函数任务，仓库矩阵只有两个确定性任务。项目尚未声称仓库级 LLM 修复具备统计优势；
-该结论必须等待付费的重复 Direct/Adaptive Patch 实验。
+当前 Oracle 仍依赖预注册公开契约，不能自动理解任意业务语义。v0.5 仓库矩阵只有三个
+人工任务；15 个配对候选全部 Direct 通过，另有一次自然 Repair 成功。项目因此只声称
+闭环可达和成本可控，不声称仓库级 Adaptive 已具有统计显著的成功率优势。
 
 ## 文档
 
+- [v0.5 Repository API Pilot](docs/knowledge-base/experiments/2026-08-01-v0.5-repository-api-pilot.md)
 - [v0.4 仓库 Mutation Matrix 报告](docs/knowledge-base/experiments/2026-08-01-v0.4-repository-mutation-matrix.md)
 - [作品展示：v0.3 架构与结果](docs/portfolio-showcase.md)
 - [v0.3 困难矩阵与失败历史实验报告](docs/knowledge-base/experiments/2026-07-28-v0.3-hard-matrix.md)
