@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "repository-v0.4",
+  "description": "Zero-API mutation matrix for easy and hard repository patch verification.",
+  "tasks": [
+    {
+      "task_id": "calculator-repair-001",
+      "category": "single-function-regression",
+      "difficulty": "easy",
+      "prompt": "Repair calculator.add so signed integer addition satisfies the existing repository tests without modifying tests.",
+      "repository_id": "calculator-v1",
+      "fixture_path": "benchmarks/repositories/calculator-v1",
+      "fixture_revision": "33b9a0d95fc460cb344eee2cda32ab81c15addc59d6e992f435319f6d2eec3a0",
+      "protected_paths": ["test_calculator.py"],
+      "evaluation": {
+        "kind": "test_command",
+        "command": ["python", "-B", "-m", "unittest", "-q"],
+        "working_directory": ".",
+        "timeout_seconds": 20,
+        "network_enabled": false
+      },
+      "mutations": [
+        {
+          "mutation_id": "correct-fix",
+          "patch_path": "benchmarks/fixtures/repository-calculator-fix.patch",
+          "expected_success": true
+        },
+        {
+          "mutation_id": "plausible-non-fix",
+          "patch_path": "benchmarks/fixtures/repository-calculator-non-fix.patch",
+          "expected_success": false
+        }
+      ]
+    },
+    {
+      "task_id": "frame-decoder-repair-001",
+      "category": "stream-state-machine",
+      "difficulty": "hard",
+      "prompt": "Repair the chunk-aware length-prefixed frame decoder so exact payload boundaries, zero-length frames, fragmented headers, and validation behavior satisfy the existing repository tests without modifying tests.",
+      "repository_id": "frame-decoder-v1",
+      "fixture_path": "benchmarks/repositories/frame-decoder-v1",
+      "fixture_revision": "4933bd447bd4c473279fc4888e3fa594115977295e167e62f9d84093f88fb2d9",
+      "protected_paths": ["test_frame_decoder.py"],
+      "evaluation": {
+        "kind": "test_command",
+        "command": ["python", "-B", "-m", "unittest", "-q"],
+        "working_directory": ".",
+        "timeout_seconds": 20,
+        "network_enabled": false
+      },
+      "mutations": [
+        {
+          "mutation_id": "correct-boundary-fix",
+          "patch_path": "benchmarks/fixtures/repository-frame-decoder-fix.patch",
+          "expected_success": true
+        },
+        {
+          "mutation_id": "documentation-only-non-fix",
+          "patch_path": "benchmarks/fixtures/repository-frame-decoder-non-fix.patch",
+          "expected_success": false
+        }
+      ]
+    }
+  ]
+}

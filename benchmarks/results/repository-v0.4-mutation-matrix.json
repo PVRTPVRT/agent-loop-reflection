@@ -1,0 +1,39 @@
+{
+  "dataset_id": "repository-v0.4",
+  "dataset_fingerprint": "cdc92d1bc87cef1f",
+  "results": [
+    {
+      "task_id": "calculator-repair-001",
+      "mutation_id": "correct-fix",
+      "expected_success": true,
+      "observed_success": true,
+      "matched_expectation": true,
+      "message": "Command completed successfully"
+    },
+    {
+      "task_id": "calculator-repair-001",
+      "mutation_id": "plausible-non-fix",
+      "expected_success": false,
+      "observed_success": false,
+      "matched_expectation": true,
+      "message": "FAILED (failures=2)"
+    },
+    {
+      "task_id": "frame-decoder-repair-001",
+      "mutation_id": "correct-boundary-fix",
+      "expected_success": true,
+      "observed_success": true,
+      "matched_expectation": true,
+      "message": "Command completed successfully"
+    },
+    {
+      "task_id": "frame-decoder-repair-001",
+      "mutation_id": "documentation-only-non-fix",
+      "expected_success": false,
+      "observed_success": false,
+      "matched_expectation": true,
+      "message": "FAILED (errors=3)"
+    }
+  ],
+  "all_matched": true
+}
