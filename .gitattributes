@@ -1,0 +1,2 @@
+benchmarks/repositories/** text eol=lf
+benchmarks/fixtures/*.patch -whitespace

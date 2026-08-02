@@ -77,13 +77,15 @@ def test_versioned_repository_mutation_matrix_matches_all_expectations() -> None
         pytest.skip("Docker Engine is unavailable")
 
     report = run_repository_mutation_matrix(
-        RepositoryBenchmarkDataset.load("benchmarks/datasets/repository-v0.4.json"),
+        RepositoryBenchmarkDataset.load("benchmarks/datasets/repository-v0.5.json"),
         project_root=Path.cwd(),
         runner=runner,
     )
 
     assert report.all_matched is True
     assert [result.observed_success for result in report.results] == [
+        True,
+        False,
         True,
         False,
         True,

@@ -8,14 +8,14 @@ if errorlevel 1 goto :failed
 
 "%PROJECT_ROOT%\.venv\Scripts\python.exe" -m pytest -q ^
     --ignore=tests/test_managed_sandbox_v2.py ^
-    --ignore=tests/test_repository_docker_integration_v0_4.py ^
+    --ignore=tests/test_repository_docker_integration.py ^
     --ignore=tests/test_docker_v2_integration.py
 if errorlevel 1 goto :failed
 
 "%PROJECT_ROOT%\.venv\Scripts\python.exe" -m pytest -q ^
     tests/test_managed_sandbox_v2.py ^
     tests/test_docker_v2_integration.py ^
-    tests/test_repository_docker_integration_v0_4.py
+    tests/test_repository_docker_integration.py
 if errorlevel 1 goto :failed
 
 popd

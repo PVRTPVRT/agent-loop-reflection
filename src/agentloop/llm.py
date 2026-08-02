@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import os
 from collections import deque
-from collections.abc import Iterable
-from typing import Protocol
+from collections.abc import Iterable, Mapping
+from typing import Literal, Protocol
 
 from openai import OpenAI
 
@@ -29,21 +29,30 @@ class OpenAIResponsesProvider:
         *,
         api_key: str | None = None,
         default_model: str | None = None,
+        reasoning_effort: Literal["low", "medium", "high"] | None = None,
+        text_format: Mapping[str, object] | None = None,
         client: OpenAI | None = None,
     ) -> None:
         self.default_model = default_model or os.environ.get("OPENAI_MODEL") or "gpt-5.4-nano"
+        self.reasoning_effort = reasoning_effort
+        self.text_format = text_format
         self._client = client or OpenAI(api_key=api_key or os.environ.get("OPENAI_API_KEY"))
 
     def generate(self, request: LLMRequest) -> LLMResponse:
         model = request.model or self.default_model
-        response = self._client.responses.create(
-            model=model,
-            instructions=request.system_prompt or None,
-            input=request.user_prompt,
-            max_output_tokens=request.max_output_tokens,
-            metadata=request.metadata or None,
-            store=False,
-        )
+        kwargs = {
+            "model": model,
+            "instructions": request.system_prompt or None,
+            "input": request.user_prompt,
+            "max_output_tokens": request.max_output_tokens,
+            "metadata": request.metadata or None,
+            "store": False,
+        }
+        if self.reasoning_effort is not None:
+            kwargs["reasoning"] = {"effort": self.reasoning_effort}
+        if self.text_format is not None:
+            kwargs["text"] = {"format": dict(self.text_format)}
+        response = self._client.responses.create(**kwargs)
         usage = response.usage
         input_details = getattr(usage, "input_tokens_details", None)
         return LLMResponse(

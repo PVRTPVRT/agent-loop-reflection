@@ -62,6 +62,22 @@ def test_openai_provider_defaults_to_validated_low_cost_model(monkeypatch) -> No
     assert provider.default_model == "gpt-5.4-nano"
 
 
+def test_openai_provider_can_set_reasoning_and_structured_text_format() -> None:
+    responses = StubResponses()
+    text_format = {"type": "json_schema", "name": "result", "schema": {"type": "object"}}
+    provider = OpenAIResponsesProvider(
+        default_model="gpt-test",
+        reasoning_effort="low",
+        text_format=text_format,
+        client=SimpleNamespace(responses=responses),
+    )
+
+    provider.generate(LLMRequest(user_prompt="repair it"))
+
+    assert responses.kwargs["reasoning"] == {"effort": "low"}
+    assert responses.kwargs["text"] == {"format": text_format}
+
+
 def test_fake_provider_is_deterministic_and_records_requests() -> None:
     provider = FakeLLMProvider(["first", "second"])
     request = LLMRequest(user_prompt="hello")
