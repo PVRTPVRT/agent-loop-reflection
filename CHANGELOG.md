@@ -7,6 +7,44 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-02
+
+### Added
+
+- A budget-capped Repository API Pilot using a pinned model snapshot, strict file-replacement
+  outputs, deterministic Git patch rendering, and auditable per-run cost reports.
+- A versioned TTL/LRU repository fixture and a six-case repair/non-fix mutation matrix.
+- Paired Direct/Adaptive execution in which both strategies share the same initial candidate.
+
+### Changed
+
+- Adaptive repository repair now makes an additional model call only when the shared initial
+  candidate fails Managed Docker verification.
+- Successful attempts retain patch hashes while failed and repaired attempts retain diagnostic
+  evidence for audit and replay.
+
+### Fixed
+
+- Render valid patches when source files do not end with a newline.
+- Normalize only one trusted repository-id path prefix while continuing to reject absolute,
+  traversal, protected, and unknown paths.
+- Pin repository fixture line endings so content fingerprints remain portable across Windows
+  and Linux.
+
+### Security
+
+- Enforce hard API-call and US-dollar ceilings before every paid request, with SDK retries
+  disabled.
+- Keep protected tests, environment files, credentials, and unrelated repository files out of
+  model inputs.
+
+### Known limitations
+
+- The committed benchmark has three small fixtures and only one natural successful Repair trace;
+  it does not establish a statistically significant Adaptive success-rate lift.
+- Full-file replacement is intentionally limited to small fixtures. Large-file support requires
+  a separately validated exact Search-Replace protocol.
+
 ## [0.4.0] - 2026-08-01
 
 ### Added

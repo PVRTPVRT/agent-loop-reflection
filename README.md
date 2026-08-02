@@ -10,7 +10,7 @@ v0.4 在 v0.3 困难任务矩阵之上加入类型化 Artifact/Evaluation 边界
 Fixture、Repository Patch 隔离验证与零 API Mutation Matrix；同时删除不可达历史路径，
 把函数和仓库验证统一到同一个 Managed Docker 生命周期。
 
-v0.5 candidate 把该边界接到真实 Repository API Pilot：模型通过 Structured Outputs
+v0.5 把该边界接到真实 Repository API Pilot：模型通过 Structured Outputs
 返回文件替换，确定性程序生成 Patch；Direct 与 Adaptive 共享同一个初始候选，只有失败
 才追加一次 Repair，并用美元硬预算限制真实调用。
 
@@ -212,6 +212,11 @@ from agentloop.v2 import (
 当前 Oracle 仍依赖预注册公开契约，不能自动理解任意业务语义。v0.5 仓库矩阵只有三个
 人工任务；15 个配对候选全部 Direct 通过，另有一次自然 Repair 成功。项目因此只声称
 闭环可达和成本可控，不声称仓库级 Adaptive 已具有统计显著的成功率优势。
+
+当前 Repository API 让模型返回完整文件内容，再由确定性程序生成 Patch。这适用于本轮
+小型 Fixture，但不适合直接扩展到数千行文件：输出成本、截断和无关改动风险会随文件
+增长。未来的大文件路径应采用带旧内容指纹、唯一匹配和原子应用校验的 Search-Replace
+Block；在该边界实现并评测前，项目不声称支持大型仓库编辑。
 
 ## 文档
 
